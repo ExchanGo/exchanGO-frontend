@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Base theme colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plus-jakarta), var(--font-dm-sans), system-ui, sans-serif;
+  --font-heading: var(--font-plus-jakarta), var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+
+  /* Custom color palette based on design */
+  --color-greeny: #20523C;
+  --color-greeny-bold: #0E2E20;
+  --color-greeny-highlight: #13442F;
+
+  --color-neon: #3CEE5C;
+  --color-neon-deep: #0A230F;
+  --color-neon-highlight: #0E3416;
+
+  --color-lite: #CCED81;
+  --color-lite-pale: #E6FFAC;
+  --color-lite-soft: #DCFF8C;
+  --color-lite-cream: #FFFEEA;
+
+
+  --color-fosfor: #D0E500;
+
+  /* Theme variables mapping */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Radius configuration */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Light theme */
+  --background: var(--color-lite-cream);
+  --foreground: var(--color-greeny);
+
+  --card: var(--color-lite-cream);
+  --card-foreground: var(--color-greeny);
+
+  --popover: var(--color-lite-cream);
+  --popover-foreground: var(--color-greeny);
+
+  --primary: var(--color-lite);
+  --primary-foreground: var(--color-greeny-bold);
+
+  --secondary: var(--color-greeny);
+  --secondary-foreground: var(--color-lite);
+
+  --muted: var(--color-lite-pale);
+  --muted-foreground: var(--color-greeny-highlight);
+
+  --accent: var(--color-lite-soft);
+  --accent-foreground: var(--color-greeny-bold);
+
+  --destructive: #FF4545;
+  --destructive-foreground: var(--color-lite-cream);
+
+  --border: var(--color-lite);
+  --input: var(--color-lite);
+  --ring: var(--color-greeny);
+}
+
+.dark {
+  /* Dark theme */
+  --background: var(--color-greeny-bold);
+  --foreground: var(--color-lite-cream);
+
+  --card: var(--color-greeny-highlight);
+  --card-foreground: var(--color-lite-cream);
+
+  --popover: var(--color-greeny-bold);
+  --popover-foreground: var(--color-lite-cream);
+
+  --primary: var(--color-lite);
+  --primary-foreground: var(--color-greeny-bold);
+
+  --secondary: var(--color-greeny);
+  --secondary-foreground: var(--color-lite-cream);
+
+  --muted: var(--color-greeny-highlight);
+  --muted-foreground: var(--color-lite);
+
+  --accent: var(--color-greeny);
+  --accent-foreground: var(--color-lite-cream);
+
+  --destructive: #FF4545;
+  --destructive-foreground: var(--color-lite-cream);
+
+  --border: var(--color-greeny);
+  --input: var(--color-greeny);
+  --ring: var(--color-lite);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-white text-foreground font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-semibold;
+  }
+}
+
+@layer components {
+  .exchango-card {
+    @apply bg-card rounded-lg border border-border p-6 shadow-sm;
+  }
+
+  .exchango-button-primary {
+    @apply bg-[var(--color-greeny)] hover:bg-[var(--color-greeny-highlight)] text-white rounded-md px-4 py-2 font-medium transition-colors;
+  }
+
+  .exchango-button-secondary {
+    @apply bg-[var(--color-lite)] hover:bg-[var(--color-lite-soft)] text-[var(--color-greeny-bold)] rounded-md px-4 py-2 font-medium transition-colors;
+  }
+
+  .exchango-gradient {
+    @apply bg-gradient-to-t from-[var(--color-greeny)]/50 via-[var(--color-greeny-highlight)] to-[var(--color-greeny)];
+  }
+}
