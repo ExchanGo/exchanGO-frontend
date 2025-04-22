@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { MapPin, ChevronDown, RotateCw } from "lucide-react";
+import { MapPin, ChevronDown, RotateCw, Clock } from "lucide-react";
+import { Button } from "../ui/button";
 
 const CurrencyConverter = () => {
   const [amount, setAmount] = useState("1000");
@@ -8,7 +11,7 @@ const CurrencyConverter = () => {
   const [targetCurrency, setTargetCurrency] = useState("Rupiah");
 
   return (
-    <div className="w-auto max-w-full absolute inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row mx-16 my-10">   
+    <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row mx-16 my-10">   
      {/* Location */}
       <div className="flex-1 border-r p-3">
         <p className="text-sm text-gray-500 mb-2">Location</p>
@@ -47,7 +50,7 @@ const CurrencyConverter = () => {
           </div>
           <ChevronDown className="h-4 w-4 text-gray-400" />
         </div>
-      </div>
+      </div>      
 
       {/* Swap Button */}
       <div className="flex items-center justify-center p-3">
@@ -72,9 +75,10 @@ const CurrencyConverter = () => {
 
       {/* Check Rates Button */}
       <div className="flex items-center justify-center pl-3">
-        <button className="bg-exchange-button text-exchange-dark font-medium py-3 px-6 rounded-md hover:bg-green-300 transition-colors">
+        <Button variant="gradient">
+          <Clock className="h-5 w-5 text-[var(--color-greeny)]" />
           Check Rates
-        </button>
+        </Button>
       </div>
     </div>
   );

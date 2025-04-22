@@ -148,6 +148,14 @@
     @apply bg-[var(--color-lite)] hover:bg-[var(--color-lite-soft)] text-[var(--color-greeny-bold)] rounded-md px-4 py-2 font-medium transition-colors;
   }
 
+  .text-primary {
+    @apply text-[var(--color-greeny)];
+  }
+
+  .font-dm {
+    font-family: var(--font-dm-sans);
+  }
+
   .exchango-gradient {
     @apply bg-gradient-to-t from-[var(--color-greeny)]/50 via-[var(--color-greeny-highlight)] to-[var(--color-greeny)];
   }
