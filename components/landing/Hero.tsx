@@ -13,13 +13,17 @@ const HeroSection = () => {
               The Smartest Way to Exchange
             </h2>
             <h1 className="text-white text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-xl">
-              Your Money<br />Deserves More
+              Your Money
+              <br />
+              Deserves More
             </h1>
           </div>
-          
-          <div className="max-w-md mt-8 md:mt-20">
-            <p className="text-[var(--color-lite-cream)] text-lg">
-              Search and compare the best exchange rates from various money changers near you all in one interactive map.
+
+          <div className="max-w-[390px] mt-8 md:mt-20">
+            <p className="text-[var(--color-lite-cream)]/60 text-lg">
+              Search & compare the best exchange rates around you, displayed on
+              an interactive map. <br /> Find the best rates near you in just
+              seconds.
             </p>
           </div>
         </div>
