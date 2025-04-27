@@ -6,8 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, ChevronDown, LocateFixed } from "lucide-react";
-import { useEffect, useState } from "react";
+import { MapPin, LocateFixed } from "lucide-react";
+import { useState } from "react";
 
 interface LocationSelectProps {
   label: string;
@@ -54,11 +54,9 @@ const defaultCity = [
 ];
 
 export function LoactionSelect({
-  label,
   defaultValue = "rabat",
   locations = defaultCity,
   onValueChange,
-  icon,
   prefixIcon,
   iconClassName,
   prefixIconClassName,

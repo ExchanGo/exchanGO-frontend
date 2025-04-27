@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Medal } from "lucide-react";
 import { CurrencyRakingSelect } from "@/components/ui/CurrencyRakingSelect";
 
 const exchangeData = [
@@ -47,7 +45,7 @@ const exchangeData = [
 
 const CityRanking = () => {
   return (
-    <div className="relative w-full min-h-screen bg-[url('/svg/bg-ranking.svg')] bg-cover bg-center bg-no-repeat bg-fixed bg-auto">
+    <div className="relative w-full min-h-screen bg-[url('/svg/bg-ranking.svg')] bg-cover bg-center bg-no-repeat">
       <div className="relative w-full max-w-5xl mx-auto px-4 py-12 z-10">
         <div className="text-center mb-8">
           <h3 className="text-sm font-medium text-dm text-[#20523C]">

@@ -4,7 +4,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
 import { useState } from "react";
@@ -70,11 +69,9 @@ const defaultCurrencies: Currency[] = [
 ];
 
 export function CurrencySelect({
-  label,
   defaultValue = "USD",
   currencies = defaultCurrencies,
   onValueChange,
-  className,
 }: CurrencySelectProps) {
   const [value, setValue] = useState<string>(defaultValue);
 

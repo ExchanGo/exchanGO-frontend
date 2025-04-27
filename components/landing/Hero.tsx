@@ -1,8 +1,5 @@
 "use client";
 
-import CurrencyConverter from "@/components/landing/CurrencyConverter";
-import HeroBackground from "@/components/landing/HeroBackground";
-
 const HeroSection = () => {
   return (
     <section className="relative w-full py-12 md:py-24 overflow-hidden">

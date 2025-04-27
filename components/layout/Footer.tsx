@@ -1,8 +1,5 @@
 import Image from "next/image";
-import exclude from "./exclude.svg";
-import facebook1 from "./facebook-1.svg";
-import image from "./image.svg";
-// import line5 from "./line-5.svg";
+s;
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 
 export const Footer = () => {

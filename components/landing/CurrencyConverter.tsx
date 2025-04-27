@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, ChevronDown, RotateCw, Clock, RefreshCw } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Button } from "../ui/button";
 import { LoactionSelect } from "../ui/LocationSelect";
 import { CurrencySelect } from "../ui/CurrencySelect";
@@ -9,9 +9,9 @@ import Image from "next/image";
 
 const CurrencyConverter = () => {
   const [amount, setAmount] = useState("1000");
-  const [location, setLocation] = useState("Birmingham - Eng");
-  const [sourceCurrency, setSourceCurrency] = useState("USD");
-  const [targetCurrency, setTargetCurrency] = useState("Rupiah");
+  // const [location, setLocation] = useState("Birmingham - Eng");
+  // const [sourceCurrency, setSourceCurrency] = useState("USD");
+  // const [targetCurrency, setTargetCurrency] = useState("Rupiah");
 
   return (
     <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row items-center mx-16 my-10">

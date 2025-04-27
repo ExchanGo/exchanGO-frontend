@@ -1,4 +1,3 @@
-import { Clock } from "lucide-react";
 import Nearby from "@/public/svg/nearby.svg";
 import SaveTime from "@/public/svg/save-time.svg";
 import TimeCompare from "@/public/svg/time-compare.svg";
