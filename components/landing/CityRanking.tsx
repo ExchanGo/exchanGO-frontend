@@ -52,7 +52,7 @@ const CityRanking = () => {
             City Ranking
           </h3>
           <h2 className="text-3xl font-bold text-[var(--color-greeny-bold)] mt-2">
-            Today's Best Rates
+            Today&apos;s Best Rates
           </h2>
 
           <p className="text-[#585858] mt-3">

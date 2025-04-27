@@ -32,7 +32,7 @@ const BenefitsSection = () => {
   return (
     <div className="w-auto py-16 bg-white">
       <div className="container mx-auto px-4 mt-14">
-        <div className="flex flex-col md:flex-row items-start gap-10">
+        <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="md:w-1/2 mb-10 md:mb-0 md:pr-12">
             <span className="text-exchange-medium font-medium text-base">
               The Best Reasons to
@@ -41,7 +41,7 @@ const BenefitsSection = () => {
               Rely on Us for Transparent Exchange
             </h2>
             <p className="font-dm text-lg text-[#585858] mb-6 max-w-[350px]">
-              Searching for a great rate shouldn't be stressful. ExchanGo24
+              Searching for a great rate shouldn&apos;t be stressful. ExchanGo24
               gives you a clear, instant view of all your options nearby.
             </p>
 
@@ -69,18 +69,25 @@ const BenefitsSection = () => {
             ))}
           </div>
 
-          <div className="relative">
-            <img
+          <div className="md:w-1/2 relative">
+            <Image
               src="/img/benefits-down.png"
               alt="Exchange service demonstration"
+              width={600}
+              height={644}
               className="w-full rounded-lg"
               style={{ maxWidth: "500px", objectFit: "contain" }}
+              quality={90}
+              priority
             />
-            <img
+            <Image
               src="/img/benefits-up.png"
               alt="Exchange service demonstration"
-              className="absolute top-35 -right-1/7 shadow-image"
+              width={230}
+              height={172}
+              className="absolute top-35 right-10 shadow-image"
               style={{ maxWidth: "230px", objectFit: "contain" }}
+              quality={90}
             />
           </div>
         </div>

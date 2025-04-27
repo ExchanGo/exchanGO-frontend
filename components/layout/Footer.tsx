@@ -1,5 +1,4 @@
 import Image from "next/image";
-s;
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 
 export const Footer = () => {
