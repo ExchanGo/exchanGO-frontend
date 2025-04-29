@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
@@ -115,10 +117,15 @@ const SelectLabel = React.forwardRef<
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
+interface SelectItemProps
+  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> {
+  noCheckIcon?: boolean;
+}
+
 const SelectItem = React.forwardRef<
-  ComponentRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  SelectItemProps
+>(({ className, children, noCheckIcon = false, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
@@ -129,10 +136,9 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        {!noCheckIcon && <Check className="h-4 w-4" />}
       </SelectPrimitive.ItemIndicator>
     </span>
-
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));

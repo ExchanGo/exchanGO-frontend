@@ -6,12 +6,24 @@ import { Button } from "../ui/button";
 import { LoactionSelect } from "../ui/LocationSelect";
 import { CurrencySelect } from "../ui/CurrencySelect";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import Loader from "../shared/Loader";
 
 const CurrencyConverter = () => {
+  const router = useRouter();
   const [amount, setAmount] = useState("1000");
+  const [isLoading, setIsLoading] = useState(false);
   // const [location, setLocation] = useState("Birmingham - Eng");
   // const [sourceCurrency, setSourceCurrency] = useState("USD");
   // const [targetCurrency, setTargetCurrency] = useState("Rupiah");
+
+  const handleCheckRates = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push("/search");
+    }, 3000);
+  };
 
   return (
     <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row items-center mx-16 my-10">
@@ -84,11 +96,13 @@ const CurrencyConverter = () => {
 
       {/* Check Rates Button */}
       <div className="flex items-center justify-center pl-3">
-        <Button variant="gradient">
+        <Button variant="gradient" onClick={handleCheckRates}>
           <Clock className="h-5 w-5 text-[var(--color-greeny)]" />
           Check Rates
         </Button>
       </div>
+
+      {isLoading && <Loader />}
     </div>
   );
 };

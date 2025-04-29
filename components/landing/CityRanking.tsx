@@ -145,16 +145,16 @@ const CityRanking = () => {
                     </span>
                   )}
                 </div>
-                <div className="bg-white p-4 font-dm font-medium text-[#585858]">
+                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858]">
                   {row.city}
                 </div>
-                <div className="bg-white p-4 font-dm font-medium text-[#585858]">
+                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858]">
                   {row.averageRate}
                 </div>
-                <div className="bg-white p-4 font-dm text-[#585858] font-medium">
+                <div className="flex flex-col justify-center bg-white p-4 font-dm text-[#585858] font-medium">
                   {row.bestRate}
                 </div>
-                <div className="bg-white p-4 font-dm font-medium text-[#585858] group-last:rounded-r-lg rounded-r-xl">
+                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858] group-last:rounded-r-lg rounded-r-xl">
                   {row.office}
                 </div>
               </div>

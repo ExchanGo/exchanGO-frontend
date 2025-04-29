@@ -23,7 +23,7 @@
   --color-lite-pale: #E6FFAC;
   --color-lite-soft: #DCFF8C;
   --color-lite-cream: #FFFEEA;
-
+  --color-zinc: #585858;
 
   --color-fosfor: #D0E500;
 
@@ -231,5 +231,18 @@
   to {
     height: 0;
     opacity: 0;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 } 
