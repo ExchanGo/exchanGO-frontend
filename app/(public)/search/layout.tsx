@@ -1,5 +1,4 @@
 import { Navbar } from "@/components/searchResults/Navbar";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function SearchLayout({
   children,
@@ -7,9 +6,10 @@ export default function SearchLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-hidden bg-white">
+    <div className="bg-white">
+      {/* Removed the overflow-hidden which was preventing proper scroll behavior */}
       <Navbar />
-      <div className="w-full max-md:max-w-full">{children}</div>
+      {children}
     </div>
   );
 }

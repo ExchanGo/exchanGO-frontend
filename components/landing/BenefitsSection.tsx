@@ -31,7 +31,7 @@ const benefits = [
 const BenefitsSection = () => {
   return (
     <div className="w-auto py-16 bg-white">
-      <div className="container mx-auto px-4 mt-14">
+      <div className="container mx-auto px-4 mt-16">
         <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="md:w-1/2 mb-10 md:mb-0 md:pr-12">
             <span className="text-exchange-medium font-medium text-base">

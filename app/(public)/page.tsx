@@ -6,8 +6,8 @@ import CurrencyConverter from "@/components/landing/CurrencyConverter";
 import CityRanking from "@/components/landing/CityRanking";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ToolsExchange from "@/components/landing/ToolsExchange";
-import FAQ from "@/components/landing/FAQ";
 import TryNowSection from "@/components/landing/TryNowSection";
+import FAQ from "@/components/landing/Faq";
 export default function Home() {
   return (
     <div className="min-h-screen">

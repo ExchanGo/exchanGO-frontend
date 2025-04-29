@@ -1,15 +1,38 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
+import Map from "@/components/searchResults/Map";
 import { ResultsHeader } from "@/components/searchResults/ResultsHeader";
 import { ResultsList } from "@/components/searchResults/ResultsList";
 import { SearchFilters } from "@/components/searchResults/SearchFilters";
-// import dynamic from "next/dynamic";
-
-// const Map = dynamic(() => import("@/components/dashboard/Map"), {
-//   ssr: false, // Important: disable server-side rendering
-// });
 
 export default function Search() {
+  // Reference to the navbar to measure its height
+  const [navbarHeight, setNavbarHeight] = useState(0);
+
+  // Effect to measure navbar height on mount and resize
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      // Get the navbar element
+      const navbar = document.querySelector("nav");
+      if (navbar) {
+        const height = navbar.getBoundingClientRect().height;
+        setNavbarHeight(height);
+      }
+    };
+
+    // Initial measurement
+    updateNavbarHeight();
+
+    // Add resize listener to handle window size changes
+    window.addEventListener("resize", updateNavbarHeight);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", updateNavbarHeight);
+    };
+  }, []);
+
   return (
     <div className="grid grid-cols-12 max-md:grid-cols-1">
       {/* Left Section - Results */}
@@ -29,13 +52,17 @@ export default function Search() {
 
       {/* Right Section - Map */}
       <section className="col-span-4 max-md:col-span-1 block">
-        <div className="sticky top-0 w-full h-screen max-md:relative max-md:h-[300px]">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets/e0b0e015be8841d68e922a989572049c/c8b9dc5f636245969683bcb19324428eb5234012?placeholderIfAbsent=true"
-            alt="Map View"
-            className="w-full h-full object-cover"
-          />
-          {/* <Map /> */}
+        <div
+          className="sticky w-full max-md:relative max-md:h-[300px]"
+          style={{
+            top: navbarHeight > 0 ? `${navbarHeight}px` : "0px",
+            height:
+              navbarHeight > 0
+                ? `calc(100vh - ${navbarHeight}px)`
+                : "calc(100vh - 125px)",
+          }}
+        >
+          <Map />
         </div>
       </section>
     </div>

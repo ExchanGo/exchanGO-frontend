@@ -6,7 +6,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { useState } from "react";
 
 interface Currency {
   value: string;
@@ -17,9 +16,9 @@ interface Currency {
 
 interface CurrencySelectProps {
   label: string;
-  defaultValue?: string;
+  value: string;
   currencies?: Currency[];
-  onValueChange?: (value: string) => void;
+  onValueChange: (value: string) => void;
   className?: string;
 }
 
@@ -69,25 +68,16 @@ const defaultCurrencies: Currency[] = [
 ];
 
 export function CurrencySelect({
-  defaultValue = "USD",
+  label,
+  value,
   currencies = defaultCurrencies,
   onValueChange,
+  className,
 }: CurrencySelectProps) {
-  const [value, setValue] = useState<string>(defaultValue);
-
-  const handleValueChange = (newValue: string) => {
-    setValue(newValue);
-    onValueChange?.(newValue);
-  };
-
   const selectedCurrency = currencies.find((c) => c.value === value);
 
   return (
-    <Select
-      defaultValue={defaultValue}
-      value={value}
-      onValueChange={handleValueChange}
-    >
+    <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className="bg-white border-0 focus:ring-0 focus:ring-offset-0 outline-none px-0 py-0 h-6 font-dm text-lg text-[#585858]">
         {selectedCurrency && (
           <div className="flex items-center gap-2">

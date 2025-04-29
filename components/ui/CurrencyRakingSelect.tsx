@@ -6,7 +6,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { useState } from "react";
 
 interface Currency {
   value: string;
@@ -70,30 +69,19 @@ const defaultCurrencies: Currency[] = [
 
 export function CurrencyRakingSelect({
   label,
-  defaultValue = "USD",
   currencies = defaultCurrencies,
+  value,
   onValueChange,
   className,
-}: CurrencySelectProps) {
-  const [value, setValue] = useState<string>(defaultValue);
-
-  const handleValueChange = (newValue: string) => {
-    setValue(newValue);
-    onValueChange?.(newValue);
-  };
-
+}: CurrencySelectProps & { value: string }) {
   const selectedCurrency = currencies.find((c) => c.value === value);
 
   return (
     <div
-      className={`px-6 py-4 h-fit bg-white rounded-2xl border border-[#DEDEDE] ${className}`}
+      className={`w-full px-6 py-4 h-fit bg-white rounded-2xl border border-[#DEDEDE] ${className}`}
     >
       <p className="text-sm font-medium font-dm text-black mb-2">{label}</p>
-      <Select
-        defaultValue={defaultValue}
-        value={value}
-        onValueChange={handleValueChange}
-      >
+      <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger className="bg-white border-0 focus:ring-0 focus:ring-offset-0 outline-none px-0 py-0 h-6 font-dm text-lg text-[#585858]">
           {selectedCurrency && (
             <div className="flex items-center gap-2">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -10,17 +11,20 @@ export default function Map() {
   const map = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
-    if (map.current || !mapContainer.current) return; // initialize only once
+    if (!mapContainer.current || map.current || typeof window === "undefined")
+      return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12", // Modern mapbox style
-      center: [-74.5, 40], // Default center [lng, lat]
+      style: "mapbox://styles/mapbox/streets-v12",
+      center: [-74.5, 40],
       zoom: 9,
     });
 
+    // map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
     return () => {
-      map.current?.remove(); // Cleanup on unmount
+      map.current?.remove();
     };
   }, []);
 

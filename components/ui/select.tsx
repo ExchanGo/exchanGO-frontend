@@ -31,7 +31,13 @@ const SelectTrigger = React.forwardRef<
     {children}
     <SelectPrimitive.Icon asChild>
       {icon || (
-        <ChevronUp className={cn("h-4 w-4 opacity-50", iconClassName)} />
+        <ChevronDown
+          className={cn(
+            "h-5 w-5 opacity-50 transition-transform duration-200 data-[state=open]:rotate-180",
+            iconClassName
+          )}
+          color="#292D32"
+        />
       )}
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
@@ -50,7 +56,7 @@ const SelectScrollUpButton = React.forwardRef<
     )}
     {...props}
   >
-    <ChevronUp className="h-4 w-4" />
+    <ChevronUp className="h-5 w-5" color="#292D32" />
   </SelectPrimitive.ScrollUpButton>
 ));
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
@@ -67,7 +73,7 @@ const SelectScrollDownButton = React.forwardRef<
     )}
     {...props}
   >
-    <ChevronDown className="h-4 w-4" />
+    <ChevronDown className="h-5 w-5" color="#292D32" />
   </SelectPrimitive.ScrollDownButton>
 ));
 SelectScrollDownButton.displayName =

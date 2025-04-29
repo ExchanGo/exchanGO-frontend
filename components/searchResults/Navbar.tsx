@@ -2,9 +2,10 @@ import React from "react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Link from "next/link";
+
 export const Navbar: React.FC = () => {
   return (
-    <nav className="px-8 pt-11 pb-8 w-full text-base leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
+    <nav className="sticky top-0 z-50 bg-white px-8 pt-11 pb-8 w-full text-base leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
       <div className="flex flex-wrap gap-5 justify-between items-center w-full max-md:max-w-full">
         <Link href="/">
           <Image
@@ -18,19 +19,19 @@ export const Navbar: React.FC = () => {
         <div className="flex flex-wrap gap-4 items-center self-stretch my-auto text-[var(--color-zinc)] max-md:max-w-full">
           <a
             href="#"
-            className="self-stretch my-auto hover:text-green-900 hover:font-medium transition-all"
+            className="self-stretch my-auto hover:text-green-900 transition-all"
           >
             Location
           </a>
           <a
             href="#"
-            className="self-stretch my-auto hover:text-green-900 hover:font-medium transition-all"
+            className="self-stretch my-auto hover:text-green-900 transition-all"
           >
             Benefit
           </a>
           <a
             href="#"
-            className="self-stretch my-auto hover:text-green-900 hover:font-medium transition-all"
+            className="self-stretch my-auto hover:text-green-900 transition-all"
           >
             Global exchange
           </a>

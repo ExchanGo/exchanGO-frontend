@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Input } from "@/components/ui/input";
 import { CurrencyRakingSelect } from "@/components/ui/CurrencyRakingSelect";
+import DualCurrencySelector from "../ui/DualCurrencySelector";
 
 const exchangeData = [
   {
@@ -44,6 +45,10 @@ const exchangeData = [
 ];
 
 const CityRanking = () => {
+  const handleCurrencyChange = (currencies: { from: string; to: string }) => {
+    console.log("Selected currencies:", currencies);
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-[url('/svg/bg-ranking.svg')] bg-cover bg-center bg-no-repeat">
       <div className="relative w-full max-w-5xl mx-auto px-4 py-12 z-10">
@@ -63,21 +68,20 @@ const CityRanking = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <CurrencyRakingSelect
-            label="Change from"
-            defaultValue="USD"
-            onValueChange={(value) =>
-              console.log("From currency changed:", value)
-            }
-          />
-
-          <CurrencyRakingSelect
-            label="Change to"
-            defaultValue="MAD"
-            onValueChange={(value) =>
-              console.log("To currency changed:", value)
-            }
-          />
+          <div className="col-span-2">
+            <DualCurrencySelector
+              fromLabel="Change from"
+              toLabel="Change to"
+              onCurrencyChange={handleCurrencyChange}
+            >
+              {({ fromProps, toProps, fromLabel, toLabel }) => (
+                <>
+                  <CurrencyRakingSelect {...fromProps} label={fromLabel} />
+                  <CurrencyRakingSelect {...toProps} label={toLabel} />
+                </>
+              )}
+            </DualCurrencySelector>
+          </div>
 
           <div className="px-6 py-4 h-fit bg-white rounded-2xl border border-[#DEDEDE]">
             <p className="text-sm font-medium font-dm text-black mb-2">
