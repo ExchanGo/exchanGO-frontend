@@ -7,7 +7,7 @@ import CityRanking from "@/components/landing/CityRanking";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ToolsExchange from "@/components/landing/ToolsExchange";
 import TryNowSection from "@/components/landing/TryNowSection";
-import FAQ from "@/components/landing/Faq";
+import Faq from "@/components/landing/Faq";
 export default function Home() {
   return (
     <div className="min-h-screen">
@@ -19,7 +19,7 @@ export default function Home() {
       <CityRanking />
       <HowItWorks />
       <ToolsExchange />
-      <FAQ />
+      <Faq />
       <TryNowSection />
     </div>
   );
