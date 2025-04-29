@@ -68,11 +68,9 @@ const defaultCurrencies: Currency[] = [
 ];
 
 export function CurrencySelect({
-  label,
   value,
   currencies = defaultCurrencies,
   onValueChange,
-  className,
 }: CurrencySelectProps) {
   const selectedCurrency = currencies.find((c) => c.value === value);
 
