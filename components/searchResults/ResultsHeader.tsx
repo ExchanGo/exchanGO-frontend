@@ -1,4 +1,6 @@
+import Image from "next/image";
 import React from "react";
+import { Button } from "../ui/button";
 
 interface ResultsHeaderProps {
   count: number;
@@ -35,14 +37,50 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
           </div>
         </div>
         <div className="flex gap-2 items-center text-base font-medium text-green-900 whitespace-nowrap">
-          <button className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid">
+          <Button
+            variant="outline"
+            size="xl"
+            className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid"
+            aria-label="Filter results"
+          >
             <span className="self-stretch my-auto">Filter</span>
-            <span className="flex shrink-0 self-stretch my-auto w-6 h-6" />
-          </button>
-          <button className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid">
+            <Image
+              src="/svg/filter.svg"
+              alt="Filter icon"
+              width={24}
+              height={24}
+              priority
+            />
+          </Button>
+          <Button
+            variant="outline"
+            size="xl"
+            className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid"
+            aria-label="Sort results"
+          >
             <span className="self-stretch my-auto">Sort</span>
-            <span className="flex shrink-0 self-stretch my-auto w-6 h-6" />
-          </button>
+            <Image
+              src="/svg/sort.svg"
+              alt="Sort icon"
+              width={24}
+              height={24}
+              priority
+            />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="xl"
+            className="flex gap-2.5 items-center self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px]"
+          >
+            <Image
+              src="/svg/alert.svg"
+              alt="more icon"
+              width={24}
+              height={24}
+              priority
+            />
+          </Button>
         </div>
       </div>
     </header>

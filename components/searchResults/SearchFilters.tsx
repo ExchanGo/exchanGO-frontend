@@ -6,8 +6,14 @@ import { LocateFixed, MapPin } from "lucide-react";
 import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { CurrencySelect } from "../ui/CurrencySelect";
 
 export const SearchFilters: React.FC = () => {
+  const handleCurrencyChange = (currencies: { from: string; to: string }) => {
+    console.log("Selected currencies:", currencies);
+  };
+
   return (
     <section className="flex overflow-hidden flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
       <div className="w-full max-md:max-w-full">
@@ -31,8 +37,30 @@ export const SearchFilters: React.FC = () => {
               />
             </div>
           </div>
-          <div className="flex grow shrink items-center gap-4 pt-2 min-w-60 w-[333px]">
-            <FloatingSelectCurrency
+          <div className="flex-1 pt-2">
+            <DualCurrencySelector
+              fromLabel="Source Currency"
+              toLabel="Target Currency"
+              onCurrencyChange={handleCurrencyChange}
+            >
+              {({ fromProps, toProps, fromLabel, toLabel }) => (
+                <>
+                  <FloatingSelectCurrency {...fromProps} label={fromLabel} />
+
+                  <Image
+                    src="/svg/exchange-rotate.svg"
+                    alt="Exchange currencies"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                    priority
+                  />
+
+                  <FloatingSelectCurrency {...toProps} label={toLabel} />
+                </>
+              )}
+            </DualCurrencySelector>
+            {/* <FloatingSelectCurrency
               label="Source Currency"
               defaultValue="USD"
               onValueChange={(value) => console.log("Source currency:", value)}
@@ -51,7 +79,7 @@ export const SearchFilters: React.FC = () => {
               label="Target Currency"
               defaultValue="USD"
               onValueChange={(value) => console.log("Source currency:", value)}
-            />
+            /> */}
           </div>
           <Button variant="gradient" className="h-12">
             Check Rates

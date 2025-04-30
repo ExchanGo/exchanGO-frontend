@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { Button } from "../ui/button";
+import Image from "next/image";
 
 interface ExchangeOfficeCardProps {
   name: string;
@@ -59,12 +61,27 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
             </div>
           </div>
           <div className="flex gap-3 items-center mt-11 w-full min-h-[46px] max-md:mt-10">
-            <button className="flex-1 shrink gap-2.5 self-stretch px-6 py-3 my-auto text-base font-medium leading-snug text-green-900 rounded-md border border-green-900 border-solid basis-0 max-md:px-5">
+            <Button
+              variant="outline"
+              size="xl"
+              className="flex-1 shrink gap-2.5 self-stretch px-6 py-3 my-auto text-base font-medium leading-snug text-green-900 rounded-md border border-green-900 border-solid basis-0 max-md:px-5"
+            >
               Get Direction
-            </button>
-            <button className="flex gap-2.5 items-center self-stretch p-3 my-auto rounded-md border border-green-900 border-solid w-[46px]">
-              <span className="flex self-stretch my-auto w-6 min-h-6" />
-            </button>
+            </Button>
+            <Button
+              variant="outline"
+              size="xl"
+              className="flex gap-2.5 items-center self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px]"
+            >
+              <Image
+                src="/svg/more.svg"
+                alt="more icon"
+                width={24}
+                height={24}
+                priority
+                className="w-6 h-6"
+              />
+            </Button>
           </div>
         </div>
       </div>

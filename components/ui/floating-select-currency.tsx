@@ -16,73 +16,22 @@ interface Currency {
   fullName: string;
 }
 
-interface CurrencySelectProps {
+interface FloatingSelectCurrencyProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  currencies: Currency[];
   label: string;
-  defaultValue?: string;
-  currencies?: Currency[];
-  onValueChange?: (value: string) => void;
   className?: string;
 }
 
-const defaultCurrencies: Currency[] = [
-  {
-    value: "USD",
-    label: "USD",
-    fullName: "US Dollar",
-    flag: "/svg/flags/us.svg",
-  },
-  {
-    value: "IDR",
-    label: "Rupiah",
-    fullName: "Indonesian Rupiah",
-    flag: "/svg/flags/id.svg",
-  },
-  {
-    value: "AUD",
-    label: "AUD",
-    fullName: "Australian Dollar",
-    flag: "/svg/flags/au.svg",
-  },
-  {
-    value: "MYR",
-    label: "Ringgit",
-    fullName: "Malaysian Ringgit",
-    flag: "/svg/flags/my.svg",
-  },
-  {
-    value: "EUR",
-    label: "EUR",
-    fullName: "Euro",
-    flag: "/svg/flags/eu.svg",
-  },
-  {
-    value: "GBP",
-    label: "GBP",
-    fullName: "British Pound",
-    flag: "/svg/flags/gb.svg",
-  },
-  {
-    value: "MAD",
-    label: "MAD",
-    fullName: "Moroccan Dirham",
-    flag: "/svg/flags/ma.svg",
-  },
-];
-
 export function FloatingSelectCurrency({
-  label = "Currency",
-  defaultValue = "USD",
-  currencies = defaultCurrencies,
+  value,
   onValueChange,
+  currencies,
+  label,
   className,
-}: CurrencySelectProps) {
-  const [value, setValue] = useState<string>(defaultValue);
+}: FloatingSelectCurrencyProps) {
   const [isFocused, setIsFocused] = useState(false);
-
-  const handleValueChange = (newValue: string) => {
-    setValue(newValue);
-    onValueChange?.(newValue);
-  };
 
   const selectedCurrency = currencies.find((c) => c.value === value);
 
@@ -103,15 +52,14 @@ export function FloatingSelectCurrency({
           "rounded-lg border border-[var(--color-lite)]",
           "hover:border-[var(--color-greeny-highlight)]",
           "focus-within:border-[var(--color-greeny)]",
-          "focus-within:ri<ng-1 focus-within:ring-[var(--color-greeny)]",
+          "focus-within:ring-1 focus-within:ring-[var(--color-greeny)]",
           "relative pt-4 bg-white transition-colors",
           className
         )}
       >
         <Select
-          defaultValue={defaultValue}
           value={value}
-          onValueChange={handleValueChange}
+          onValueChange={onValueChange}
           onOpenChange={(open) => setIsFocused(open)}
         >
           <SelectTrigger className="bg-white border-0 focus:ring-0 focus:ring-offset-0 outline-none px-0 py-0 h-6 font-dm text-lg text-[#585858]">
