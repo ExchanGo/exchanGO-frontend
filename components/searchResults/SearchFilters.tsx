@@ -7,7 +7,6 @@ import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
-import { CurrencySelect } from "../ui/CurrencySelect";
 
 export const SearchFilters: React.FC = () => {
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
@@ -60,26 +59,6 @@ export const SearchFilters: React.FC = () => {
                 </>
               )}
             </DualCurrencySelector>
-            {/* <FloatingSelectCurrency
-              label="Source Currency"
-              defaultValue="USD"
-              onValueChange={(value) => console.log("Source currency:", value)}
-            />
-
-            <Image
-              src="/svg/exchange-rotate.svg"
-              alt="Exchange currencies"
-              width={24}
-              height={24}
-              className="h-6 w-6"
-              priority
-            />
-
-            <FloatingSelectCurrency
-              label="Target Currency"
-              defaultValue="USD"
-              onValueChange={(value) => console.log("Source currency:", value)}
-            /> */}
           </div>
           <Button variant="gradient" className="h-12">
             Check Rates
