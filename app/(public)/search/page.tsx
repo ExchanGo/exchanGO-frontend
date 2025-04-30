@@ -11,7 +11,7 @@ import MapCotrols from "@/components/map/map-controls";
 import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
