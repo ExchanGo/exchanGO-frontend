@@ -10,7 +10,7 @@ import Wrapper from "../shared/wrapper";
 import SectionBadge from "../ui/section-badge";
 import Image from "next/image";
 
-const Faq = () => {
+const FaqSection = () => {
   return (
     <div className="relative overflow-hidden">
       <div className="absolute right-0 w-[35%] top-[8%] -z-10 h-full">
@@ -73,4 +73,4 @@ const Faq = () => {
   );
 };
 
-export default Faq;
+export default FaqSection;

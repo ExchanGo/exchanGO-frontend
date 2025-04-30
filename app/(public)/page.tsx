@@ -7,7 +7,7 @@ import CityRanking from "@/components/landing/CityRanking";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ToolsExchange from "@/components/landing/ToolsExchange";
 import TryNowSection from "@/components/landing/TryNowSection";
-import Faq from "@/components/landing/Faq";
+import FaqSection from "@/components/landing/FaqSection";
 
 export default function Home() {
   return (
@@ -20,7 +20,7 @@ export default function Home() {
       <CityRanking />
       <HowItWorks />
       <ToolsExchange />
-      <Faq />
+      <FaqSection />
       <TryNowSection />
     </div>
   );
