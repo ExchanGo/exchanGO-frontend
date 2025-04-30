@@ -1,14 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Map from "@/components/searchResults/Map";
+import { useEffect, useRef, useState } from "react";
+// import Map from "@/components/searchResults/Map";
 import { ResultsHeader } from "@/components/searchResults/ResultsHeader";
 import { ResultsList } from "@/components/searchResults/ResultsList";
 import { SearchFilters } from "@/components/searchResults/SearchFilters";
+import MapProvider from "@/lib/mapbox/provider";
+import MapSearch from "@/components/map/map-search";
+import MapCotrols from "@/components/map/map-controls";
+import MapStyles from "@/components/map/map-styles";
+import { useMapStore } from "@/store/map";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Search() {
+  const isMapMaximized = useMapStore((state) => state.isMapMaximized);
+
   // Reference to the navbar to measure its height
   const [navbarHeight, setNavbarHeight] = useState(0);
+
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Effect to measure navbar height on mount and resize
   useEffect(() => {
@@ -36,7 +47,12 @@ export default function Search() {
   return (
     <div className="grid grid-cols-12 max-md:grid-cols-1">
       {/* Left Section - Results */}
-      <section className="col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0">
+      <section
+        className={cn(
+          "col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0",
+          isMapMaximized && "invisible"
+        )}
+      >
         <SearchFilters />
         <div className="mx-8 mt-6">
           <ResultsHeader
@@ -51,9 +67,26 @@ export default function Search() {
       </section>
 
       {/* Right Section - Map */}
-      <section className="col-span-4 max-md:col-span-1 block">
-        <div
-          className="sticky w-full max-md:relative max-md:h-[300px]"
+      <motion.section
+        className={cn(
+          "col-span-4 max-md:col-span-1",
+          isMapMaximized ? "fixed inset-x-0 z-50" : "block"
+        )}
+        initial={false}
+        animate={{
+          width: isMapMaximized ? "100vw" : "auto",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 30,
+        }}
+      >
+        <motion.div
+          className={cn(
+            "w-full h-full",
+            !isMapMaximized && "sticky max-md:relative max-md:h-[300px]"
+          )}
           style={{
             top: navbarHeight > 0 ? `${navbarHeight}px` : "0px",
             height:
@@ -61,10 +94,40 @@ export default function Search() {
                 ? `calc(100vh - ${navbarHeight}px)`
                 : "calc(100vh - 125px)",
           }}
+          initial={false}
+          animate={{
+            scale: isMapMaximized ? 1 : 1,
+            opacity: 1,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
+          }}
         >
-          <Map />
-        </div>
-      </section>
+          <motion.div className="w-full h-full" initial={false} layout>
+            <motion.div
+              id="map-container"
+              ref={mapContainerRef}
+              className="absolute inset-0 h-full w-full"
+              layout
+            />
+
+            <MapProvider
+              mapContainerRef={mapContainerRef}
+              initialViewState={{
+                longitude: -122.4194,
+                latitude: 37.7749,
+                zoom: 10,
+              }}
+            >
+              <MapSearch />
+              <MapCotrols />
+              <MapStyles />
+            </MapProvider>
+          </motion.div>
+        </motion.div>
+      </motion.section>
     </div>
   );
 }

@@ -7,7 +7,8 @@ import CityRanking from "@/components/landing/CityRanking";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ToolsExchange from "@/components/landing/ToolsExchange";
 import TryNowSection from "@/components/landing/TryNowSection";
-import Faq from "@/components/landing/FAQ";
+import Faq from "@/components/landing/Faq";
+
 export default function Home() {
   return (
     <div className="min-h-screen">
