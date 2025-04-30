@@ -7,14 +7,6 @@ interface Currency {
   fullName: string;
 }
 
-interface CurrencySelectProps {
-  label: string;
-  defaultValue?: string;
-  currencies?: Currency[];
-  onValueChange?: (value: string) => void;
-  className?: string;
-}
-
 interface DualCurrencySelectorProps {
   onCurrencyChange?: (currencies: { from: string; to: string }) => void;
   fromLabel?: string;
@@ -80,7 +72,7 @@ const defaultCurrencies: Currency[] = [
   },
 ];
 
-export default function c({
+export default function DualCurrencySelector({
   onCurrencyChange,
   fromLabel = "From",
   toLabel = "To",

@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "framer-motion";
 import Loader from "@/components/shared/Loader";
 
 function Loading() {

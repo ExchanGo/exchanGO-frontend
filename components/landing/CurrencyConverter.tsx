@@ -9,7 +9,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Loader from "../shared/Loader";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
-import { CurrencyRakingSelect } from "../ui/CurrencyRakingSelect";
 
 const CurrencyConverter = () => {
   const router = useRouter();

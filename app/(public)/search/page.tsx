@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Map from "@/components/searchResults/Map";
 import { ResultsHeader } from "@/components/searchResults/ResultsHeader";
 import { ResultsList } from "@/components/searchResults/ResultsList";
