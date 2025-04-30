@@ -9,7 +9,7 @@ import { LocationFeature } from "@/lib/mapbox/utils";
 type Props = {
   longitude: number;
   latitude: number;
-  data: any;
+  data: LocationFeature;
   onHover?: ({
     isHovered,
     position,
