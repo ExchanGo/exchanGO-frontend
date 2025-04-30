@@ -11,7 +11,6 @@ import MapCotrols from "@/components/map/map-controls";
 import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
@@ -47,12 +46,7 @@ export default function Search() {
   return (
     <div className="grid grid-cols-12 max-md:grid-cols-1">
       {/* Left Section - Results */}
-      <section
-        className={cn(
-          "col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0",
-          isMapMaximized && "invisible"
-        )}
-      >
+      <section className="col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0">
         <SearchFilters />
         <div className="mx-8 mt-6">
           <ResultsHeader
@@ -67,25 +61,11 @@ export default function Search() {
       </section>
 
       {/* Right Section - Map */}
-      <motion.section
-        className={cn(
-          "col-span-4 max-md:col-span-1",
-          isMapMaximized ? "fixed inset-x-0 z-50" : "block"
-        )}
-        initial={false}
-        animate={{
-          width: isMapMaximized ? "100vw" : "auto",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 400,
-          damping: 30,
-        }}
-      >
-        <motion.div
+      <section className="col-span-4 max-md:col-span-1 block">
+        <div
           className={cn(
-            "w-full h-full",
-            !isMapMaximized && "sticky max-md:relative max-md:h-[300px]"
+            "sticky w-full max-md:relative max-md:h-[300px]",
+            isMapMaximized && "fixed z-50 left-0"
           )}
           style={{
             top: navbarHeight > 0 ? `${navbarHeight}px` : "0px",
@@ -94,23 +74,21 @@ export default function Search() {
                 ? `calc(100vh - ${navbarHeight}px)`
                 : "calc(100vh - 125px)",
           }}
-          initial={false}
-          animate={{
-            scale: isMapMaximized ? 1 : 1,
-            opacity: 1,
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 400,
-            damping: 30,
-          }}
         >
-          <motion.div className="w-full h-full" initial={false} layout>
-            <motion.div
+          {/* <Map /> */}
+          <div
+            className="w-screen"
+            style={{
+              height:
+                navbarHeight > 0
+                  ? `calc(100vh - ${navbarHeight}px)`
+                  : "calc(100vh - 125px)",
+            }}
+          >
+            <div
               id="map-container"
               ref={mapContainerRef}
               className="absolute inset-0 h-full w-full"
-              layout
             />
 
             <MapProvider
@@ -125,9 +103,9 @@ export default function Search() {
               <MapCotrols />
               <MapStyles />
             </MapProvider>
-          </motion.div>
-        </motion.div>
-      </motion.section>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
