@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
   const setMapMaximized = useMapStore((state) => state.setMapMaximized);
+  const [key, setKey] = useState(0); // Add key for forcing map re-render
 
   // Reference to the navbar to measure its height
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -48,10 +49,37 @@ export default function Search() {
     setMapMaximized(false);
   }, [setMapMaximized]);
 
+  // Effect to force map re-render when maximized state changes or when controls are used
+  useEffect(() => {
+    const handleControlInteraction = () => {
+      setKey((prev) => prev + 1);
+    };
+
+    // Listen for control interactions
+    window.addEventListener("mapControlInteraction", handleControlInteraction);
+
+    return () => {
+      window.removeEventListener(
+        "mapControlInteraction",
+        handleControlInteraction
+      );
+    };
+  }, []);
+
+  // Effect to force map re-render when maximized state changes
+  useEffect(() => {
+    setKey((prev) => prev + 1);
+  }, [isMapMaximized]);
+
   return (
     <div className="grid grid-cols-12 max-md:grid-cols-1">
       {/* Left Section - Results */}
-      <section className="col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0">
+      <section
+        className={cn(
+          "col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0",
+          isMapMaximized && "hidden"
+        )}
+      >
         <SearchFilters />
         <div className="mx-8 mt-6">
           <ResultsHeader
@@ -66,28 +94,39 @@ export default function Search() {
       </section>
 
       {/* Right Section - Map */}
-      <section className="col-span-4 max-md:col-span-1 block">
+      <section
+        className={cn(
+          "col-span-4 max-md:col-span-1 block",
+          isMapMaximized && "col-span-12"
+        )}
+      >
         <div
           className={cn(
             "sticky w-full max-md:relative max-md:h-[300px]",
-            isMapMaximized && "fixed z-50 left-0"
+            isMapMaximized && "fixed inset-0 z-50"
           )}
           style={{
-            top: navbarHeight > 0 ? `${navbarHeight}px` : "0px",
-            height:
-              navbarHeight > 0
+            top: !isMapMaximized
+              ? navbarHeight > 0
+                ? `${navbarHeight}px`
+                : "0px"
+              : "0",
+            height: !isMapMaximized
+              ? navbarHeight > 0
                 ? `calc(100vh - ${navbarHeight}px)`
-                : "calc(100vh - 125px)",
+                : "calc(100vh - 125px)"
+              : "100vh",
           }}
         >
-          {/* <Map /> */}
           <div
-            className="w-full"
+            key={key} // Add key to force re-render
+            className="w-full h-full"
             style={{
-              height:
-                navbarHeight > 0
+              height: !isMapMaximized
+                ? navbarHeight > 0
                   ? `calc(100vh - ${navbarHeight}px)`
-                  : "calc(100vh - 125px)",
+                  : "calc(100vh - 125px)"
+                : "100vh",
             }}
           >
             <div
@@ -97,6 +136,7 @@ export default function Search() {
             />
 
             <MapProvider
+              key={key} // Add key to force re-render
               mapContainerRef={mapContainerRef}
               initialViewState={{
                 longitude: -122.4194,
