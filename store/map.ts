@@ -16,7 +16,12 @@ export const useMapStore = create<MapState>()(
         setMapMaximized: (value) => set({ isMapMaximized: value }),
       }),
       {
-        name: 'map-storage', // unique name for localStorage
+        name: 'map-storage',
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            state.isMapMaximized = false;
+          }
+        }
       }
     )
   )

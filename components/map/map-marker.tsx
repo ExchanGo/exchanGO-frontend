@@ -9,7 +9,7 @@ import { LocationFeature } from "@/lib/mapbox/utils";
 type Props = {
   longitude: number;
   latitude: number;
-  data: LocationFeature;
+  data: any;
   onHover?: ({
     isHovered,
     position,
@@ -43,60 +43,54 @@ export default function Marker({
   ...props
 }: Props) {
   const { map } = useMap();
-  const markerRef = useRef<HTMLDivElement | null>(null);
-  let marker: mapboxgl.Marker | null = null;
+  const markerRef = useRef<HTMLDivElement>(null);
+  const markerInstance = useRef<mapboxgl.Marker | null>(null);
 
   const handleHover = (isHovered: boolean) => {
-    if (onHover && marker) {
+    if (onHover && markerInstance.current) {
       onHover({
         isHovered,
         position: { longitude, latitude },
-        marker,
+        marker: markerInstance.current,
         data,
       });
     }
   };
 
   const handleClick = () => {
-    if (onClick && marker) {
+    if (onClick && markerInstance.current) {
       onClick({
         position: { longitude, latitude },
-        marker,
+        marker: markerInstance.current,
         data,
       });
     }
   };
 
   useEffect(() => {
-    const markerEl = markerRef.current;
-    if (!map || !markerEl) return;
+    // Wait for both map and marker element to be available
+    if (!map?.getCanvas() || !markerRef.current) return;
 
+    const markerEl = markerRef.current;
     const handleMouseEnter = () => handleHover(true);
     const handleMouseLeave = () => handleHover(false);
 
-    // Add event listeners
     markerEl.addEventListener("mouseenter", handleMouseEnter);
     markerEl.addEventListener("mouseleave", handleMouseLeave);
     markerEl.addEventListener("click", handleClick);
 
-    // Marker options
-    const options = {
+    markerInstance.current = new mapboxgl.Marker({
       element: markerEl,
       ...props,
-    };
-
-    marker = new mapboxgl.Marker(options)
+    })
       .setLngLat([longitude, latitude])
       .addTo(map);
 
     return () => {
-      // Cleanup on unmount
-      if (marker) marker.remove();
-      if (markerEl) {
-        markerEl.removeEventListener("mouseenter", handleMouseEnter);
-        markerEl.removeEventListener("mouseleave", handleMouseLeave);
-        markerEl.removeEventListener("click", handleClick);
-      }
+      markerInstance.current?.remove();
+      markerEl.removeEventListener("mouseenter", handleMouseEnter);
+      markerEl.removeEventListener("mouseleave", handleMouseLeave);
+      markerEl.removeEventListener("click", handleClick);
     };
   }, [map, longitude, latitude, props]);
 

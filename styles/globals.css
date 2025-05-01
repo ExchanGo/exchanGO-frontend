@@ -212,6 +212,10 @@
 
     /* MAPBOX */
 
+    .mapboxgl-ctrl-group button {
+      display: none !important
+    }
+
     .mapboxgl-custom-popup .mapboxgl-popup-content {
       @apply bg-card text-card-foreground p-5 rounded-lg;
     }

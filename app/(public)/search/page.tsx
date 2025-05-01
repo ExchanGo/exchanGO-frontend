@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-// import Map from "@/components/searchResults/Map";
 import { ResultsHeader } from "@/components/searchResults/ResultsHeader";
 import { ResultsList } from "@/components/searchResults/ResultsList";
 import { SearchFilters } from "@/components/searchResults/SearchFilters";
@@ -77,7 +76,7 @@ export default function Search() {
         >
           {/* <Map /> */}
           <div
-            className="w-screen"
+            className="w-full"
             style={{
               height:
                 navbarHeight > 0
