@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
+  const setMapMaximized = useMapStore((state) => state.setMapMaximized);
 
   // Reference to the navbar to measure its height
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -41,6 +42,11 @@ export default function Search() {
       window.removeEventListener("resize", updateNavbarHeight);
     };
   }, []);
+
+  // Effect to ensure map is not maximized on mount
+  useEffect(() => {
+    setMapMaximized(false);
+  }, [setMapMaximized]);
 
   return (
     <div className="grid grid-cols-12 max-md:grid-cols-1">

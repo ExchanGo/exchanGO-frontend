@@ -21,7 +21,8 @@ export const useMapStore = create<MapState>()(
           if (state) {
             state.isMapMaximized = false;
           }
-        }
+        },
+        skipHydration: true
       }
     )
   )

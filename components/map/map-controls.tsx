@@ -8,9 +8,14 @@ import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { useMapStore } from "@/store/map";
 
+// Extend the GeolocateControl type to include _clearWatch
+interface ExtendedGeolocateControl extends mapboxgl.GeolocateControl {
+  _clearWatch: () => void;
+}
+
 export default function MapCotrols() {
   const { map } = useMap();
-  const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
+  const geolocateControl = useRef<ExtendedGeolocateControl | null>(null);
   const [isTracking, setIsTracking] = useState(false);
 
   const toggleMapMaximized = useMapStore((state) => state.toggleMapMaximized);
@@ -27,7 +32,7 @@ export default function MapCotrols() {
       showUserHeading: true,
       showAccuracyCircle: false,
       showUserLocation: true,
-    });
+    }) as ExtendedGeolocateControl;
 
     // Add control but hide the default button
     map.addControl(geolocateControl.current);
@@ -56,7 +61,7 @@ export default function MapCotrols() {
     if (!isTracking) {
       geolocateControl.current.trigger();
     } else {
-      (geolocateControl.current as any)._clearWatch();
+      geolocateControl.current._clearWatch();
       setIsTracking(false);
     }
   };
