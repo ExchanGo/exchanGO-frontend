@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useModal, confirmModal } from "@/store/modals";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useFilterByCurrencyStore } from "@/store/filter-by-currency";
 
 interface FilterPayload {
   minPrice?: number;
@@ -42,6 +43,16 @@ const TREND_OPTIONS = [
   { label: "⚡ Most Searched", value: "most_searched" },
   { label: "Nearest office", value: "nearest" },
 ];
+
+export interface FilterState {
+  selectedCurrencies: string[];
+  selectedTrend: string | null;
+  onlyOpenOffices: boolean;
+  setSelectedCurrencies: (currencies: string[]) => void;
+  setSelectedTrend: (trend: string | null) => void;
+  setOnlyOpenOffices: (open: boolean) => void;
+  clearAll: () => void;
+}
 
 export function CurrencyTagsFilter({
   selected,
@@ -144,9 +155,19 @@ export default function FilterModal() {
     maxPrice: (payloads as FilterPayload)?.maxPrice || 1000,
     currency: (payloads as FilterPayload)?.currency || "USD",
   });
-  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
-  const [selectedTrend, setSelectedTrend] = useState<string | null>(null);
-  const [onlyOpenOffices, setOnlyOpenOffices] = useState(false);
+  const selectedCurrencies = useFilterByCurrencyStore(
+    (s) => s.selectedCurrencies
+  );
+  const setSelectedCurrencies = useFilterByCurrencyStore(
+    (s) => s.setSelectedCurrencies
+  );
+  const selectedTrend = useFilterByCurrencyStore((s) => s.selectedTrend);
+  const setSelectedTrend = useFilterByCurrencyStore((s) => s.setSelectedTrend);
+  const onlyOpenOffices = useFilterByCurrencyStore((s) => s.onlyOpenOffices);
+  const setOnlyOpenOffices = useFilterByCurrencyStore(
+    (s) => s.setOnlyOpenOffices
+  );
+  const clearAll = useFilterByCurrencyStore((s) => s.clearAll);
 
   useEffect(() => {
     setFilterValues({

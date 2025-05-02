@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
 import { openModal } from "@/store/modals";
+import { cn } from "@/lib/utils";
+import { useFilterByCurrencyStore } from "@/store/filter-by-currency";
 
 interface ResultsHeaderProps {
   count: number;
@@ -15,13 +19,27 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
   lastUpdate,
 }) => {
   const handleFilterClick = () => {
-    console.log("Filter clicked");
     openModal("MODAL_FILTER_CURRENCY", {
       minPrice: 0,
       maxPrice: 1000,
       currency: "USD",
     });
   };
+
+  // Use global filter state
+  const selectedCurrencies = useFilterByCurrencyStore(
+    (s) => s.selectedCurrencies
+  );
+  const selectedTrend = useFilterByCurrencyStore((s) => s.selectedTrend);
+  const onlyOpenOffices = useFilterByCurrencyStore((s) => s.onlyOpenOffices);
+
+  console.log(selectedCurrencies, selectedTrend, onlyOpenOffices);
+
+  // Compute active filter count
+  let activeCount = 0;
+  if (selectedCurrencies.length > 0) activeCount += 1;
+  if (selectedTrend) activeCount += 1;
+  if (onlyOpenOffices) activeCount += 1;
 
   return (
     <header className="flex flex-wrap gap-5 justify-between w-full leading-snug max-md:max-w-full">
@@ -50,11 +68,18 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
           <Button
             variant="outline"
             size="xl"
-            className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid"
+            className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid relative"
             aria-label="Filter results"
             onClick={handleFilterClick}
           >
-            <span className="self-stretch my-auto">Filter</span>
+            <span className="self-stretch my-auto flex items-center gap-2">
+              Filter
+              {activeCount > 0 && (
+                <span className="ml-2 flex items-center justify-center rounded-full bg-[#E2EB3A] text-green-900 text-xs font-bold w-7 h-7">
+                  {activeCount.toString().padStart(2, "0")}
+                </span>
+              )}
+            </span>
             <Image
               src="/svg/filter.svg"
               alt="Filter icon"

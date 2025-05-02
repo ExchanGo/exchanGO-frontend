@@ -99,7 +99,7 @@ export default function Search() {
           <div
             className={cn(
               "sticky w-full max-md:relative max-md:h-[300px]",
-              isMapMaximized && "fixed inset-0 z-50"
+              isMapMaximized && "relative left-0 z-50"
             )}
             style={{
               top: !isMapMaximized
