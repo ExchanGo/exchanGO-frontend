@@ -8,7 +8,6 @@ import { useFilterByCurrencyStore } from "@/store/filter-by-currency";
 import {
   Select,
   SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
