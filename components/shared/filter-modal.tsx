@@ -170,16 +170,6 @@ export default function FilterModal() {
     });
   };
 
-  const handleInputChange = (
-    field: keyof FilterPayload,
-    value: string | number
-  ) => {
-    setFilterValues((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101]">
