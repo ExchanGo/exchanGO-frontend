@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-// Define modal types
+// Define modal types:
 export type ModalType = 
   | 'MODAL_FILTER_CURRENCY'
   | 'MODAL_FILTER_LOCATION'
