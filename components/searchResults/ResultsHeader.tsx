@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
+import { openModal } from "@/store/modals";
 
 interface ResultsHeaderProps {
   count: number;
@@ -13,6 +14,15 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
   location,
   lastUpdate,
 }) => {
+  const handleFilterClick = () => {
+    console.log("Filter clicked");
+    openModal("MODAL_FILTER_CURRENCY", {
+      minPrice: 0,
+      maxPrice: 1000,
+      currency: "USD",
+    });
+  };
+
   return (
     <header className="flex flex-wrap gap-5 justify-between w-full leading-snug max-md:max-w-full">
       <div className="flex gap-1 items-center my-auto text-sm text-zinc-600">
@@ -42,6 +52,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
             size="xl"
             className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid"
             aria-label="Filter results"
+            onClick={handleFilterClick}
           >
             <span className="self-stretch my-auto">Filter</span>
             <Image
@@ -52,6 +63,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
               priority
             />
           </Button>
+
           <Button
             variant="outline"
             size="xl"

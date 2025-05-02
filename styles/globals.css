@@ -56,7 +56,7 @@
   --radius: 0.625rem;
 
   /* Light theme */
-  --background: var(--color-lite-cream);
+  --background: #ffff;
   --foreground: var(--color-greeny);
 
   --card: var(--color-lite-cream);

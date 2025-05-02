@@ -40,27 +40,19 @@ export default function MapCotrols() {
     // Listen for geolocate events
     geolocateControl.current.on("geolocate", () => {
       setIsTracking(true);
-      // Trigger map re-render
-      window.dispatchEvent(new Event("mapControlInteraction"));
     });
 
     geolocateControl.current.on("error", () => {
       setIsTracking(false);
-      // Trigger map re-render
-      window.dispatchEvent(new Event("mapControlInteraction"));
     });
   }, [map]);
 
   const zoomIn = () => {
     map?.zoomIn();
-    // Trigger map re-render
-    window.dispatchEvent(new Event("mapControlInteraction"));
   };
 
   const zoomOut = () => {
     map?.zoomOut();
-    // Trigger map re-render
-    window.dispatchEvent(new Event("mapControlInteraction"));
   };
 
   const trackUserLocation = () => {
@@ -72,14 +64,6 @@ export default function MapCotrols() {
       geolocateControl.current._clearWatch();
       setIsTracking(false);
     }
-    // Trigger map re-render
-    window.dispatchEvent(new Event("mapControlInteraction"));
-  };
-
-  const handleMaximize = () => {
-    toggleMapMaximized();
-    // Trigger map re-render
-    window.dispatchEvent(new Event("mapControlInteraction"));
   };
 
   return (
@@ -123,7 +107,7 @@ export default function MapCotrols() {
         variant="ghost"
         size="sm"
         className="bg-background rounded-sm shadow-lg"
-        onClick={handleMaximize}
+        onClick={toggleMapMaximized}
       >
         <Expand className="w-5 h-5" />
       </Button>
