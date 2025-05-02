@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/context/map-context";
+import Loader from "@/components/shared/Loader";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -57,7 +58,14 @@ export default function MapProvider({
   if (!isLoaded) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-        <div className="text-lg font-medium">Loading map...</div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader
+            text="Loading map..."
+            noOverlay
+            titleClassName="text-lg text-balck font-medium"
+            className="relative"
+          />
+        </div>
       </div>
     );
   }

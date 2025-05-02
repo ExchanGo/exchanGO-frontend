@@ -1,16 +1,31 @@
 "use client";
+import { cn } from "@/lib/utils";
 import "../../styles/spinner.css";
 
-function Loader() {
+function Loader({
+  text,
+  className,
+  noOverlay,
+  titleClassName,
+}: {
+  text?: string;
+  className?: string;
+  noOverlay?: boolean;
+  titleClassName?: string;
+}) {
   return (
-    <div className="fixed flex place-content-center inset-0 z-50">
+    <div
+      className={cn("fixed flex place-content-center inset-0 z-50", className)}
+    >
       {/* Gradient Overlay Background */}
-      <div className="absolute inset-0 bg-black/20" />
+      {!noOverlay && <div className="absolute inset-0 bg-black/20" />}
 
       {/* Content */}
-      <div className="flex flex-col place-content-center">
+      <div className="flex flex-col items-center gap-2.5 place-content-center">
         <div className="loader"></div>
-        <p className="text-white text-sm">Loading...</p>
+        <p className={cn("text-white text-sm", titleClassName)}>
+          {text || "Loading..."}
+        </p>
       </div>
     </div>
   );

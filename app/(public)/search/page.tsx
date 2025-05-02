@@ -111,7 +111,7 @@ export default function Search() {
                 ? navbarHeight > 0
                   ? `calc(100vh - ${navbarHeight}px)`
                   : "calc(100vh - 125px)"
-                : "100vh",
+                : `calc(100vh - ${navbarHeight}px)`,
             }}
           >
             <div
