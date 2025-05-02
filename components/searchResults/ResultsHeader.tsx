@@ -4,8 +4,14 @@ import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
 import { openModal } from "@/store/modals";
-import { cn } from "@/lib/utils";
 import { useFilterByCurrencyStore } from "@/store/filter-by-currency";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 interface ResultsHeaderProps {
   count: number;
@@ -40,6 +46,13 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
   if (selectedCurrencies.length > 0) activeCount += 1;
   if (selectedTrend) activeCount += 1;
   if (onlyOpenOffices) activeCount += 1;
+
+  const sortOptions = [
+    { label: "Best to worst exchange rate", value: "rate" },
+    { label: "Geographic proximity", value: "geo" },
+    { label: "Currently open/closed", value: "open" },
+  ];
+  const [sortValue, setSortValue] = React.useState("");
 
   return (
     <header className="flex flex-wrap gap-5 justify-between w-full leading-snug max-md:max-w-full">
@@ -89,21 +102,42 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
             />
           </Button>
 
-          <Button
-            variant="outline"
-            size="xl"
-            className="flex gap-2 items-center self-stretch px-5 py-3 my-auto rounded-lg border border-green-900 border-solid"
-            aria-label="Sort results"
-          >
-            <span className="self-stretch my-auto">Sort</span>
-            <Image
-              src="/svg/sort.svg"
-              alt="Sort icon"
-              width={24}
-              height={24}
-              priority
-            />
-          </Button>
+          <Select value={sortValue} onValueChange={setSortValue}>
+            <SelectTrigger
+              icon={
+                <Image
+                  src="/svg/sort.svg"
+                  alt="Sort icon"
+                  width={24}
+                  height={24}
+                  priority
+                  className="ml-2 flex-shrink-0"
+                />
+              }
+              className={`
+                flex items-center px-5 py-3 my-auto h-full rounded-lg border border-green-900 border-solid
+                ring-0 focus:ring-0 focus-visible:ring-0 outline-none
+                ${
+                  sortValue
+                    ? "border-[var(--color-greeny-highlight)] bg-[var(--color-lite-pale)]/50 text-[var(--color-greeny-highlight)]"
+                    : "bg-white text-[var(--color-greeny-highlight)]"
+                }
+                transition-colors
+              `}
+              aria-label="Sort results"
+            >
+              <span className="flex-1 text-base font-medium whitespace-nowrap overflow-hidden truncate">
+                Sort
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             variant="outline"
