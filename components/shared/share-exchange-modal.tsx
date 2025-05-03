@@ -50,11 +50,11 @@ const SHARE_OPTIONS = [
 ];
 
 export default function ShareExchangeModal() {
-  const { isOpen, type, payloads, onClose } = useModal();
+  const { isOpen, type, onClose } = useModal();
   const [copied, setCopied] = useState(false);
 
   // let exchange = payloads?.exchangeData;
-  let exchange = {
+  const exchange = {
     image: "/img/dirham-alert.png",
     name: "DirhamX",
     location: "Rabat, Morocco",
