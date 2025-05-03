@@ -49,6 +49,13 @@ const SHARE_OPTIONS = [
   },
 ];
 
+// Type guard for share modal payload
+function isSharePayload(payload: unknown): payload is { exchangeData?: any } {
+  return (
+    typeof payload === "object" && payload !== null && "exchangeData" in payload
+  );
+}
+
 export default function ShareExchangeModal() {
   const { isOpen, type, payloads, onClose } = useModal();
   const [copied, setCopied] = useState(false);
@@ -56,10 +63,10 @@ export default function ShareExchangeModal() {
   let exchange;
   if (
     type === "MODAL_SHARE_EXCHANGE" &&
-    payloads &&
-    (payloads as any).exchangeData
+    isSharePayload(payloads) &&
+    payloads.exchangeData
   ) {
-    exchange = (payloads as any).exchangeData;
+    exchange = payloads.exchangeData;
   } else {
     exchange = {
       image: "/img/dirham-alert.png",
@@ -160,12 +167,7 @@ export default function ShareExchangeModal() {
                   <Button
                     size="icon"
                     aria-label={`Share to ${opt.label}`}
-                    className={`w-fit px-5 py-3 text-white ${
-                      opt.color
-                    } transition-all duration-150 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${opt.color.replace(
-                      "bg-",
-                      ""
-                    )}`}
+                    className={`w-fit px-5 py-3 text-white ${opt.color} transition-all duration-150 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2`}
                     onClick={() =>
                       window.open(
                         opt.url(exchange.link),
