@@ -131,8 +131,7 @@ export default function MapSearch() {
         <Command className="rounded-lg">
           <div
             className={cn(
-              "w-full flex items-center justify-between px-3 gap-1",
-              isOpen && "border-b"
+              "w-full flex items-center justify-between px-3 gap-1 bg-white"
             )}
           >
             <CommandInput
@@ -153,7 +152,7 @@ export default function MapSearch() {
           </div>
 
           {isOpen && (
-            <CommandList className="max-h-60 overflow-y-auto">
+            <CommandList className="max-h-60 overflow-y-auto bg-white">
               {!query.trim() || isSearching ? null : results.length === 0 ? (
                 <CommandEmpty className="py-6 text-center">
                   <div className="flex flex-col items-center justify-center space-y-1">

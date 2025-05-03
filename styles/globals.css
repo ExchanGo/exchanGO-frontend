@@ -272,6 +272,7 @@
     .dark .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
       border-left-color: var(--card);
     }
+    
 }
 
 /* Keyframes for accordion animations */
