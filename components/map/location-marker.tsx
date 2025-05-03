@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+// import { MapPin } from "lucide-react";
 
 import { LocationFeature } from "@/lib/mapbox/utils";
 import Marker from "./map-marker";
