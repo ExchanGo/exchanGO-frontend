@@ -98,4 +98,5 @@ export type LocationFeature = {
     bbox?: [number, number, number, number];
     operational_status?: string;
   };
+  rate?: string;
 };
