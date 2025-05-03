@@ -167,7 +167,7 @@ export default function FilterModal() {
   const setOnlyOpenOffices = useFilterByCurrencyStore(
     (s) => s.setOnlyOpenOffices
   );
-  const clearAll = useFilterByCurrencyStore((s) => s.clearAll);
+  // const clearAll = useFilterByCurrencyStore((s) => s.clearAll);
 
   useEffect(() => {
     setFilterValues({
