@@ -49,16 +49,6 @@ const SHARE_OPTIONS = [
   },
 ];
 
-// Type guard for share modal payload
-function isSharePayload(
-  payload: any
-): payload is { exchangeId?: string; exchangeData?: any } {
-  return (
-    payload &&
-    (payload.exchangeData !== undefined || payload.exchangeId !== undefined)
-  );
-}
-
 export default function ShareExchangeModal() {
   const { isOpen, type, payloads, onClose } = useModal();
   const [copied, setCopied] = useState(false);
