@@ -17,7 +17,6 @@ interface ResultsHeaderProps {
   location: string;
   lastUpdate: string;
 }
-
 export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
   count,
   location,
@@ -28,6 +27,19 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
       minPrice: 0,
       maxPrice: 1000,
       currency: "USD",
+    });
+  };
+  const handleShareClick = () => {
+    openModal("MODAL_SHARE_EXCHANGE", {
+      exchangeId: "123",
+      exchangeData: {
+        name: "DirhamX",
+        location: "Rabat, Morocco",
+        rate: "Rp 16450",
+        lastUpdate: "16 April 2025",
+        image: "/img/dirham-alert.png",
+        link: "https://www.exchangego24.com/tdjs...",
+      },
     });
   };
 
@@ -140,6 +152,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
 
           <Button
             variant="outline"
+            onClick={handleShareClick}
             size="xl"
             className="flex gap-2.5 items-center self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px]"
           >

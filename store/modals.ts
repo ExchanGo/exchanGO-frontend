@@ -6,7 +6,8 @@ export type ModalType =
   | 'MODAL_FILTER_LOCATION'
   | 'MODAL_FILTER_DATE'
   | 'MODAL_SORT'
-  | 'MODAL_ALERT';
+  | 'MODAL_ALERT'
+  | 'MODAL_SHARE_EXCHANGE';
 
 // Define payload types for each modal
 interface ModalPayloads {
@@ -30,6 +31,10 @@ interface ModalPayloads {
   MODAL_ALERT: {
     message?: string;
     type?: 'info' | 'warning' | 'error';
+  };
+  MODAL_SHARE_EXCHANGE: {
+    exchangeId?: string;
+    exchangeData?: any;
   };
 }
 
