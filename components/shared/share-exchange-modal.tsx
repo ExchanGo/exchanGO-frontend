@@ -144,19 +144,20 @@ export default function ShareExchangeModal() {
           </div>
           <div className="mt-2">
             <span className="text-gray-700 text-sm font-medium">Share to:</span>
-            <div className="flex flex-col gap-3 mt-3">
+            <div className="flex flex-col gap-5 mt-3">
               {SHARE_OPTIONS.map((opt) => (
                 <div
                   key={opt.label}
-                  className="flex items-center justify-between gap-3 px-4 py-2 font-semibold text-base border border-[#DEDEDE] rounded-md bg-white"
+                  className="flex items-center justify-between gap-3 font-semibold text-base"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 border border-[#DEDEDE] rounded-md p-1.5 bg-white">
+                    <div className="flex items-center justify-center w-11 h-11 border border-[#DEDEDE] rounded-md p-1.5 bg-white">
                       <Image
                         src={opt.icon}
                         alt={opt.label}
                         width={32}
                         height={32}
+                        className="size-full"
                       />
                     </div>
                     <div className="flex flex-col items-start">
