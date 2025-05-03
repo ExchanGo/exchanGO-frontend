@@ -49,34 +49,19 @@ const SHARE_OPTIONS = [
   },
 ];
 
-// Type guard for share modal payload
-function isSharePayload(payload: unknown): payload is { exchangeData?: any } {
-  return (
-    typeof payload === "object" && payload !== null && "exchangeData" in payload
-  );
-}
-
 export default function ShareExchangeModal() {
   const { isOpen, type, payloads, onClose } = useModal();
   const [copied, setCopied] = useState(false);
 
-  let exchange;
-  if (
-    type === "MODAL_SHARE_EXCHANGE" &&
-    isSharePayload(payloads) &&
-    payloads.exchangeData
-  ) {
-    exchange = payloads.exchangeData;
-  } else {
-    exchange = {
-      image: "/img/dirham-alert.png",
-      name: "DirhamX",
-      location: "Rabat, Morocco",
-      lastUpdate: "16 April 2025",
-      rate: "Rp 16450",
-      link: "https://www.exchangego24.com/tdjs...",
-    };
-  }
+  // let exchange = payloads?.exchangeData;
+  let exchange = {
+    image: "/img/dirham-alert.png",
+    name: "DirhamX",
+    location: "Rabat, Morocco",
+    lastUpdate: "16 April 2025",
+    rate: "Rp 16450",
+    link: "https://www.exchangego24.com/tdjs...",
+  };
 
   useEffect(() => {
     if (!isOpen) setCopied(false);
@@ -95,7 +80,7 @@ export default function ShareExchangeModal() {
             Quickly share the exchange details — via message, email, or link.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 px-6 pb-6">
+        <div className="grid gap-4 px-6 pb-8">
           <div className="flex items-center border border-gray-200 rounded-lg">
             <Image
               src={exchange.image}
