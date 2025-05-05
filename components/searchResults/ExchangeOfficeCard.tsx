@@ -3,6 +3,9 @@
 import React from "react";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
+import { ExternalLink, Phone } from "lucide-react";
+import { openModal } from "@/store/modals";
 
 interface ExchangeOfficeCardProps {
   name: string;
@@ -23,6 +26,31 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
   isPopular = true,
   isOpen = true,
 }) => {
+  const handleSelectAction = (value: string) => {
+    if (value === "rate-alert") {
+      // Open rate alert modal (replace with your modal logic)
+      openModal("MODAL_ALERT", {
+        message: "Rate alert modal opened!",
+        type: "info",
+      });
+    } else if (value === "share") {
+      openModal("MODAL_SHARE_EXCHANGE", {
+        exchangeId: "123",
+        exchangeData: {
+          name: "DirhamX",
+          location: "Rabat, Morocco",
+          rate: "Rp 16450",
+          lastUpdate: "16 April 2025",
+          image: "/img/dirham-alert.png",
+          link: "https://www.exchangego24.com/tdjs...",
+        },
+      });
+    } else if (value === "call") {
+      // Example: open tel: link
+      window.open("tel:+1234567890");
+    }
+  };
+
   return (
     <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border border-solid border-neutral-200 min-w-60 w-[221px]">
       <div className="overflow-hidden w-full text-xs font-medium leading-tight text-neutral-900">
@@ -68,20 +96,60 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
             >
               Get Direction
             </Button>
-            <Button
-              variant="outline"
-              size="xl"
-              className="flex gap-2.5 items-center self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px]"
-            >
-              <Image
-                src="/svg/more.svg"
-                alt="more icon"
-                width={24}
-                height={24}
-                priority
-                className="w-6 h-6"
-              />
-            </Button>
+            <Select onValueChange={handleSelectAction}>
+              <SelectTrigger
+                hideIcon
+                className="flex gap-2.5 items-center h-12 cursor-pointer self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px] bg-white focus:ring-0 focus:ring-offset-0 outline-none"
+              >
+                <Image
+                  src="/svg/more.svg"
+                  alt="more icon"
+                  width={24}
+                  height={24}
+                  priority
+                  className="w-full h-6"
+                />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl shadow-lg bg-white border border-gray-100 min-w-[220px] py-2">
+                <SelectItem
+                  value="rate-alert"
+                  noCheckIcon
+                  className="inline-flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-t-xl"
+                >
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src="/svg/rate-alert.svg"
+                      alt="rate alert icon"
+                      width={20}
+                      height={20}
+                      priority
+                      className="w-5 h-5 opacity-80"
+                    />
+                    <span>Rate Alert</span>
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="share"
+                  noCheckIcon
+                  className="flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-5 h-5 opacity-70" />
+                    <span>Share this Exchange</span>
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="call"
+                  noCheckIcon
+                  className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-b-xl"
+                >
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-5 h-5 opacity-70" />
+                    <span>Call Atlas exchange ( Mobile )</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
