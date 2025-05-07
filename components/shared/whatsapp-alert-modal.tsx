@@ -27,8 +27,8 @@ export default function WhatsAppAlertModal() {
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedOffice, setSelectedOffice] = useState<string>("");
   const [phone, setPhone] = useState("");
-  const [sourceCurrency] = useState("Morocco Dirham");
-  const [targetCurrency] = useState("USD");
+  // const [sourceCurrency] = useState("Morocco Dirham");
+  // const [targetCurrency] = useState("USD");
   const [sourceAmount, setSourceAmount] = useState("1 MAD");
   const [targetRate, setTargetRate] = useState("$0.10");
   const [newsletter, setNewsletter] = useState(false);
