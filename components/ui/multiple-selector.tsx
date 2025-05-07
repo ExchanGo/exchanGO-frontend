@@ -152,7 +152,7 @@ const MultipleSelector: React.FC<MultipleSelectorProps> = ({
             {filteredOptions.length === 0 && (
               <div className="py-4 px-2">
                 {emptyIndicator || (
-                  <span className="text-gray-400 text-xs">
+                  <span className="text-gray-400 text-sm">
                     No results found.
                   </span>
                 )}

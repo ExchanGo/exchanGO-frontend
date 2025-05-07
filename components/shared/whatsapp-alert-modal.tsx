@@ -120,10 +120,12 @@ export default function WhatsAppAlertModal() {
 
   // Step 1: Form (Area or Office)
   if ((step === 1 && !success) || (step === 2 && !success)) {
-    const cityOptions: MultiSelectOption[] = cities.map((city) => ({
-      label: city,
-      value: city,
-    }));
+    const cityOptions: MultiSelectOption[] = Array.from(new Set(cities)).map(
+      (city) => ({
+        label: city,
+        value: city,
+      })
+    );
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-lg w-full p-0">
@@ -134,7 +136,7 @@ export default function WhatsAppAlertModal() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -24 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="px-6 py-6"
+              className="p-8"
             >
               <div className="flex flex-col gap-2 mb-2">
                 <button
@@ -169,7 +171,9 @@ export default function WhatsAppAlertModal() {
                     icon={LocateFixed}
                     placeholder="Type your city"
                     emptyIndicator={
-                      <span className="text-gray-400">No results found.</span>
+                      <span className="text-gray-400 text-xs">
+                        No results found.
+                      </span>
                     }
                   />
                   <div className="text-xs text-gray-500 mt-1">
