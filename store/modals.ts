@@ -7,7 +7,8 @@ export type ModalType =
   | 'MODAL_FILTER_DATE'
   | 'MODAL_SORT'
   | 'MODAL_ALERT'
-  | 'MODAL_SHARE_EXCHANGE';
+  | 'MODAL_SHARE_EXCHANGE'
+  | 'MODAL_WHATSAPP_ALERT';
 
 // Define payload types for each modal
 interface ModalPayloads {
@@ -35,6 +36,11 @@ interface ModalPayloads {
   MODAL_SHARE_EXCHANGE: {
     exchangeId?: string;
     exchangeData?: any;
+  };
+  MODAL_WHATSAPP_ALERT: {
+    step?: number;
+    mode?: 'area' | 'office';
+    // Add more fields as needed for the alert flow
   };
 }
 

@@ -1,5 +1,8 @@
 import { FAQS } from "./faq";
+import { cities, offices } from "./options";
 
 export {
-    FAQS
+    FAQS,
+    cities,
+    offices
  };

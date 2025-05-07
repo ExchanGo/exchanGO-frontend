@@ -28,11 +28,8 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
 }) => {
   const handleSelectAction = (value: string) => {
     if (value === "rate-alert") {
-      // Open rate alert modal (replace with your modal logic)
-      openModal("MODAL_ALERT", {
-        message: "Rate alert modal opened!",
-        type: "info",
-      });
+      // Open WhatsApp alert modal (multi-step)
+      openModal("MODAL_WHATSAPP_ALERT", { step: 0 });
     } else if (value === "share") {
       openModal("MODAL_SHARE_EXCHANGE", {
         exchangeId: "123",

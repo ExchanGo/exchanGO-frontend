@@ -3,6 +3,7 @@
 import { useModal } from "@/store/modals";
 import FilterModal from "./filter-modal";
 import ShareExchangeModal from "./share-exchange-modal";
+import WhatsAppAlertModal from "./whatsapp-alert-modal";
 
 export default function ModalContainerSearch() {
   const { type } = useModal();
@@ -11,6 +12,7 @@ export default function ModalContainerSearch() {
     <div className="fixed inset-0 z-[-10]">
       {type === "MODAL_FILTER_CURRENCY" && <FilterModal />}
       {type === "MODAL_SHARE_EXCHANGE" && <ShareExchangeModal />}
+      {type === "MODAL_WHATSAPP_ALERT" && <WhatsAppAlertModal />}
     </div>
   );
 }
