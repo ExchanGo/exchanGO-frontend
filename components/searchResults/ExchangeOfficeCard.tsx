@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
@@ -26,9 +26,11 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
   isPopular = true,
   isOpen = true,
 }) => {
+  const [selectValue, setSelectValue] = useState<string>("");
+
   const handleSelectAction = (value: string) => {
     if (value === "rate-alert") {
-      // Open WhatsApp alert modal (multi-step)
+      console.log("rate-alert");
       openModal("MODAL_WHATSAPP_ALERT", { step: 0 });
     } else if (value === "share") {
       openModal("MODAL_SHARE_EXCHANGE", {
@@ -46,6 +48,8 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
       // Example: open tel: link
       window.open("tel:+1234567890");
     }
+    // Reset select value after action
+    setSelectValue("");
   };
 
   return (
@@ -93,7 +97,7 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
             >
               Get Direction
             </Button>
-            <Select onValueChange={handleSelectAction}>
+            <Select value={selectValue} onValueChange={handleSelectAction}>
               <SelectTrigger
                 hideIcon
                 className="flex gap-2.5 items-center h-12 cursor-pointer self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px] bg-white focus:ring-0 focus:ring-offset-0 outline-none"

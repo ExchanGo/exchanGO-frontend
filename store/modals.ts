@@ -63,24 +63,33 @@ export const useModal = create<ModalState>((set) => ({
   type: null,
   payloads: {},
   
-  setIsOpen: (type, payloads = {}) => 
+  setIsOpen: (type, payloads = {}) => {
+    // First reset the state completely
     set(() => ({ 
-      isOpen: true, 
-      type, 
-      payloads 
-    })),
+      isOpen: false, 
+      type: null,
+      payloads: {} 
+    }));
+    
+    // Then set the new state in the next tick
+    setTimeout(() => {
+      set(() => ({ 
+        isOpen: true, 
+        type, 
+        payloads: { ...payloads } 
+      }));
+    }, 0);
+  },
   
   onClose: () => 
-    set((state) => ({ 
-      ...state, 
+    set(() => ({ 
       isOpen: false, 
       type: null,
       payloads: {} 
     })),
   
   onConfirm: (callback) => {
-    set((state) => ({ 
-      ...state, 
+    set(() => ({ 
       isOpen: false, 
       type: null,
       payloads: {} 
@@ -89,8 +98,7 @@ export const useModal = create<ModalState>((set) => ({
   },
   
   onCancel: (callback) => {
-    set((state) => ({ 
-      ...state, 
+    set(() => ({ 
       isOpen: false, 
       type: null,
       payloads: {} 

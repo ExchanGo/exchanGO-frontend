@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useModal, closeModal } from "@/store/modals";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, CheckCircle2, LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,13 @@ import MultipleSelector, {
   Option as MultiSelectOption,
 } from "@/components/ui/multiple-selector";
 import { cities, offices } from "@/constants";
+import { PhoneInput } from "@/components/ui/phone-input";
+import type { Value } from "react-phone-number-input";
+import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { FloatingSelectCurrency } from "../ui/floating-select-currency";
+import { FloatingLabelInput } from "../ui/FloatingLabelInput";
+import { FloatingSelect } from "@/components/ui/FloatingSelect";
+import React from "react";
 
 export default function WhatsAppAlertModal() {
   const { isOpen, type, payloads, onClose } = useModal();
@@ -26,13 +33,26 @@ export default function WhatsAppAlertModal() {
   const [mode, setMode] = useState<"area" | "office" | null>(null);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedOffice, setSelectedOffice] = useState<string>("");
-  const [phone, setPhone] = useState("");
-  // const [sourceCurrency] = useState("Morocco Dirham");
-  // const [targetCurrency] = useState("USD");
+  const [phone, setPhone] = useState<Value | undefined>(undefined);
   const [sourceAmount, setSourceAmount] = useState("1 MAD");
   const [targetRate, setTargetRate] = useState("$0.10");
   const [newsletter, setNewsletter] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Reset state when modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setStep(0);
+      setMode(null);
+      setSelectedCities([]);
+      setSelectedOffice("");
+      setPhone(undefined);
+      setSourceAmount("1 MAD");
+      setTargetRate("$0.10");
+      setNewsletter(false);
+      setSuccess(false);
+    }
+  }, [isOpen]);
 
   if (type !== "MODAL_WHATSAPP_ALERT") return null;
 
@@ -50,6 +70,10 @@ export default function WhatsAppAlertModal() {
 
   const handleSetReminder = () => {
     setSuccess(true);
+  };
+
+  const handleCurrencyChange = (currencies: { from: string; to: string }) => {
+    console.log("Selected currencies:", currencies);
   };
 
   // Step 0: Choose mode
@@ -70,7 +94,7 @@ export default function WhatsAppAlertModal() {
                 <DialogTitle className="text-2xl font-bold text-black">
                   Receive Whatsapp Alert
                 </DialogTitle>
-                <DialogDescription className="text-[#585858] text-base">
+                <DialogDescription className="text-[#585858] text-base mb-2">
                   Get an immediate WhatsApp notification when your target rate
                   becomes available near you.
                 </DialogDescription>
@@ -156,7 +180,7 @@ export default function WhatsAppAlertModal() {
                 becomes available near you.
               </DialogDescription>
               <form
-                className="space-y-3"
+                className="space-y-4"
                 onSubmit={(e) => {
                   e.preventDefault();
                   setStep(step + 1);
@@ -182,22 +206,22 @@ export default function WhatsAppAlertModal() {
                 </div>
                 {/* Exchange Office (optional, only for office mode) */}
                 {mode === "office" && (
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-1">
-                      * Exchange Office ( Optional )
-                    </label>
-                    <select
-                      className="w-full border rounded-lg px-3 py-2 bg-white"
-                      value={selectedOffice}
-                      onChange={(e) => setSelectedOffice(e.target.value)}
-                    >
-                      <option value="">All Office</option>
-                      {offices.map((office) => (
-                        <option key={office} value={office}>
-                          {office}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="mt-4">
+                    <FloatingSelect
+                      label="Exchange Office (Optional)"
+                      placeholder="All Office"
+                      options={[
+                        { label: "All Office", value: "all" },
+                        ...offices.map((office) => ({
+                          label: office,
+                          value: office,
+                        })),
+                      ]}
+                      value={selectedOffice || "all"}
+                      onChange={(value) =>
+                        setSelectedOffice(value === "all" ? "" : value)
+                      }
+                    />
                     <div className="text-xs text-gray-500 mt-1">
                       *{offices.length} Office found
                     </div>
@@ -208,130 +232,93 @@ export default function WhatsAppAlertModal() {
                   <label className="block text-sm font-medium text-black mb-1">
                     Whatsapp number
                   </label>
-                  <div className="flex gap-2">
-                    <select
-                      className="border rounded-lg px-2 py-2 bg-white"
-                      defaultValue="+121"
-                    >
-                      <option value="+121">+121</option>
-                      <option value="+212">+212</option>
-                      <option value="+33">+33</option>
-                    </select>
-                    <input
-                      type="text"
-                      placeholder="Type your phone number"
-                      className="flex-1 border rounded-lg px-3 py-2 bg-white"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
+                  <PhoneInput
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder="Type your phone number"
+                  />
                 </div>
                 {/* Currencies */}
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-black mb-1">
-                      Source Currency
-                    </label>
-                    <div className="flex items-center border rounded-lg px-3 py-2 bg-white">
-                      <Image
-                        src="/svg/mad.svg"
-                        alt="MAD"
-                        width={24}
-                        height={24}
-                        className="mr-2"
-                      />
-                      <span className="font-medium">Morocco Dirham</span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      1 MAD = 0.11 USD
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center mt-6">
-                    <Image
-                      src="/svg/switch.svg"
-                      alt="Switch"
-                      width={28}
-                      height={28}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-black mb-1">
-                      Target Currency
-                    </label>
-                    <div className="flex items-center border rounded-lg px-3 py-2 bg-white">
-                      <Image
-                        src="/svg/usd.svg"
-                        alt="USD"
-                        width={24}
-                        height={24}
-                        className="mr-2"
-                      />
-                      <span className="font-medium">USD</span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      1 USD = 9,30 MAD
-                    </div>
-                  </div>
+                <div className="flex-1 pt-2">
+                  <DualCurrencySelector
+                    fromLabel="Source Currency"
+                    toLabel="Target Currency"
+                    onCurrencyChange={handleCurrencyChange}
+                  >
+                    {({ fromProps, toProps, fromLabel, toLabel }) => (
+                      <>
+                        <FloatingSelectCurrency
+                          {...fromProps}
+                          label={fromLabel}
+                        />
+
+                        <Image
+                          src="/svg/exchange-rotate.svg"
+                          alt="Exchange currencies"
+                          width={24}
+                          height={24}
+                          className="h-6 w-6"
+                          priority
+                        />
+
+                        <FloatingSelectCurrency {...toProps} label={toLabel} />
+                      </>
+                    )}
+                  </DualCurrencySelector>
                 </div>
                 {/* Alert me when */}
-                <div className="flex gap-4 mt-2">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-black mb-1">
-                      Source Currency
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-white"
-                      value={sourceAmount}
-                      onChange={(e) => setSourceAmount(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-black mb-1">
-                      Your Target Rate
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-white"
-                      value={targetRate}
-                      onChange={(e) => setTargetRate(e.target.value)}
-                    />
+                <div className="flex flex-col gap-2 mt-4">
+                  <span className="text-sm font-bold mb-2 text-black">
+                    Alert me when{" "}
+                  </span>
+
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <FloatingLabelInput
+                        label="Source Currency"
+                        placeholder="1 MAD0"
+                        onChange={(value: string) =>
+                          console.log("New Source Currency:", value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <FloatingLabelInput
+                        label="Amount"
+                        placeholder="$ 0.10"
+                        onChange={(value: string) =>
+                          console.log("New Amount:", value)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-[#585858] mt-1">
                   Add Notify me when 1 MAD exceeds 0.10 USD
                 </div>
-                <div className="flex items-center mt-2">
+                <div className="flex items-start mt-2">
                   <input
                     type="checkbox"
                     id="newsletter"
                     checked={newsletter}
                     onChange={(e) => setNewsletter(e.target.checked)}
-                    className="mr-2"
+                    className="mr-2 w-5 h-5 accent-greeny"
                   />
-                  <label htmlFor="newsletter" className="text-sm text-gray-700">
+                  <label
+                    htmlFor="newsletter"
+                    className="text-xs text-[#585858]"
+                  >
                     Add me to your newsletter and keep me updated whenever your
                     publish new exchange rate
                   </label>
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full mt-3 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg py-3 rounded-lg"
-                  onClick={handleSetReminder}
-                >
-                  Set Reminder
-                </Button>
+                <div className="flex items-center justify-end mt-4">
+                  <Button variant="gradient" onClick={handleSetReminder}>
+                    Set Reminder
+                  </Button>
+                </div>
               </form>
-              {/* Footer message */}
-              <div className="mt-3 text-center text-sm text-gray-600">
-                {mode === "area"
-                  ? `You'll receive a WhatsApp alert when 1 MAD reaches 0.10 USD in ${
-                      selectedCities.join(", ") || "All Area"
-                    }`
-                  : `You'll receive a WhatsApp alert when 1 MAD reaches 0.10 USD in ${
-                      selectedOffice || "All Office"
-                    }`}
-              </div>
             </motion.div>
           </AnimatePresence>
         </DialogContent>
@@ -352,11 +339,18 @@ export default function WhatsAppAlertModal() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-6" />
-              <DialogTitle className="text-2xl font-bold text-black mb-2">
+              <div className="flex items-center justify-center mb-4">
+                <Image
+                  src="/svg/alarm-sucess.svg"
+                  alt="Whatsapp Alert"
+                  width={100}
+                  height={100}
+                />
+              </div>
+              <DialogTitle className="text-xl font-bold text-black mb-2">
                 Alarm rate has been successfully set
               </DialogTitle>
-              <DialogDescription className="text-[#585858] text-base mb-6">
+              <DialogDescription className="text-[#585858] text-sm mb-6 max-w-[380px] mx-auto">
                 You'll receive a WhatsApp alert when 1 MAD reaches 0.10 USD in{" "}
                 {mode === "area"
                   ? selectedCities.join(", ") || "All Area"
@@ -364,7 +358,8 @@ export default function WhatsAppAlertModal() {
                 .
               </DialogDescription>
               <Button
-                className="bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg py-3 rounded-lg mt-4"
+                variant="gradient"
+                size="xl"
                 onClick={() => {
                   setSuccess(false);
                   setStep(0);
