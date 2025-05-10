@@ -74,7 +74,7 @@ const MultipleSelector: React.FC<MultipleSelectorProps> = ({
   }, []);
 
   return (
-    <div className={cn("relative w-full", className)} ref={containerRef}>
+    <div className={cn("relative w-full z-40", className)} ref={containerRef}>
       <label
         className={cn(
           "absolute z-10 -top-2 left-3 px-1.5 text-xs font-medium",

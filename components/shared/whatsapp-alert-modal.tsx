@@ -228,16 +228,25 @@ export default function WhatsAppAlertModal() {
                   </div>
                 )}
                 {/* Phone input */}
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Whatsapp number
-                  </label>
-                  <PhoneInput
-                    value={phone}
-                    onChange={setPhone}
-                    placeholder="Type your phone number"
-                  />
-                </div>
+                <PhoneInput
+                  value={phone}
+                  onChange={(value) => {
+                    // For the specific case of typing +212 (Morocco code), force a reset first
+                    if (
+                      value &&
+                      typeof value === "string" &&
+                      value.startsWith("+212") &&
+                      phone !== value
+                    ) {
+                      setPhone(undefined);
+                      setTimeout(() => setPhone(value), 0);
+                    } else {
+                      setPhone(value || undefined);
+                    }
+                  }}
+                  placeholder="Type your phone number"
+                  defaultCountry="MA"
+                />
                 {/* Currencies */}
                 <div className="flex-1 pt-2">
                   <DualCurrencySelector
