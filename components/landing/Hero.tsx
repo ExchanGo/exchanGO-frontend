@@ -3,7 +3,7 @@
 const HeroSection = () => {
   return (
     <section className="relative w-full py-12 md:py-24 overflow-hidden">
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row items-start justify-between mb-12 md:mb-20">
           <div className="max-w-2xl mb-8 md:mb-0">
             <h2 className="text-[var(--color-neon)] text-xl md:text-2xl font-medium mb-4">

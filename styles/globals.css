@@ -272,6 +272,45 @@
     .dark .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
       border-left-color: var(--card);
     }
+    .mapboxgl-marker {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .mapboxgl-popup-content {
+      padding: 0 !important;
+      border-radius: 0.75rem !important;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    }
+
+    .mapboxgl-popup-close-button {
+      width: 24px !important;
+      height: 24px !important;
+      border-radius: 9999px !important;
+      background-color: white !important;
+      color: #666 !important;
+      font-size: 16px !important;
+      padding: 0 !important;
+      margin: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    .mapboxgl-popup-close-button:hover {
+      background-color: #f3f4f6 !important;
+      color: #333 !important;
+      transform: scale(1.05) !important;
+    }
+    
+    .mapboxgl-popup-close-button:active {
+      transform: scale(0.95) !important;
+    }
+    
+   
     
 }
 

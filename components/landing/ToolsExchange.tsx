@@ -52,7 +52,7 @@ const ToolsExchange = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-16">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-left mb-16 max-w-3xl">
           <p className="text-[var(--color-neon)] text-sm font-medium mb-4">
             Exchange, Simplified.

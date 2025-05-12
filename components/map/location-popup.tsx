@@ -1,16 +1,11 @@
 import { LocationFeature, iconMap } from "@/lib/mapbox/utils";
-import { cn } from "@/lib/utils";
-import {
-  LocateIcon,
-  MapPin,
-  Navigation,
-  Star,
-  ExternalLink,
-} from "lucide-react";
+import { LocateIcon, ExternalLink, Phone, Timer } from "lucide-react";
 import Popup from "./map-popup";
-import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
+import Image from "next/image";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
+import { useState } from "react";
+import { openModal } from "@/store/modals";
 
 type LocationPopupProps = {
   location: LocationFeature;
@@ -42,6 +37,30 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
     return <LocateIcon className="h-5 w-5" />;
   };
 
+  const [selectValue, setSelectValue] = useState("");
+
+  const handleSelectAction = (value: string) => {
+    if (value === "rate-alert") {
+      openModal("MODAL_WHATSAPP_ALERT", { step: 0 });
+    } else if (value === "share") {
+      openModal("MODAL_SHARE_EXCHANGE", {
+        exchangeId: "123",
+        exchangeData: {
+          name: "DirhamX",
+          location: "Rabat, Morocco",
+          rate: "Rp 16450",
+          lastUpdate: "16 April 2025",
+          image: "/img/dirham-alert.png",
+          link: "https://www.exchangego24.com/tdjs...",
+        },
+      });
+    } else if (value === "call") {
+      // Example: open tel: link
+      window.open("tel:+1234567890");
+    }
+    // Reset select value after action
+    setSelectValue("");
+  };
   return (
     <Popup
       latitude={lat}
@@ -53,115 +72,115 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
       className="location-popup"
       focusAfterOpen={false}
     >
-      <div className="w-[300px] sm:w-[350px]">
-        <div className="flex items-start gap-3">
-          <div className="bg-rose-500/10 p-2 rounded-full shrink-0">
-            {getIcon()}
+      <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border border-solid border-neutral-200 min-w-60 w-[221px]">
+        <div className="overflow-hidden w-full text-xs font-medium leading-tight text-neutral-900">
+          <div className="flex relative flex-col px-3 py-3.5 w-full aspect-[2.3]">
+            <img
+              src={
+                "https://cdn.builder.io/api/v1/image/assets/e0b0e015be8841d68e922a989572049c/e9f1840681e65187d02abf6f65958b364feba223?placeholderIfAbsent=true"
+              }
+              alt={`${name} office`}
+              className="object-cover absolute inset-0 size-full"
+            />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1">
-              <h3 className="font-medium text-base truncate">{name}</h3>
-              {status && (
-                <Badge
-                  variant={status === "active" ? "outline" : "secondary"}
-                  className={cn(
-                    "text-xs",
-                    status === "active" ? "border-green-500 text-green-600" : ""
-                  )}
-                >
-                  {status === "active" ? "Open" : status}
-                </Badge>
-              )}
+        </div>
+        <div className="flex flex-col justify-center w-full p-4">
+          <div className="flex relative justify-between w-full mb-2">
+            <div className="flex gap-0.5 justify-center items-center p-1 bg-white rounded border border-[#DEDEDE]">
+              <span className="self-stretch inline-flex items-center gap-1 my-auto">
+                <Timer className="w-4 h-4" />
+                🔥 Popular Exchange
+              </span>
             </div>
-            {brand && brand !== name && (
-              <p className="text-sm font-medium text-muted-foreground">
-                {brand}
-              </p>
-            )}
-            {address && (
-              <p className="text-sm text-muted-foreground truncate mt-1">
-                <MapPin className="h-3 w-3 inline mr-1 opacity-70" />
-                {address}
-              </p>
-            )}
+            <div className="flex gap-0.5 justify-center items-center p-1 whitespace-nowrap bg-white rounded border border-[#DEDEDE]">
+              <span className="self-stretch inline-flex items-center gap-1 my-auto">
+                {" "}
+                <Timer className="w-4 h-4" />
+                Open
+              </span>
+            </div>
           </div>
-        </div>
-
-        {categories.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1 max-w-full">
-            {categories.slice(0, 3).map((category, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="text-xs capitalize truncate max-w-[100px]"
+          <div className="w-full min-h-[191px]">
+            <div className="w-full h-[103px]">
+              <div className="w-full">
+                <h3 className="text-base text-neutral-900">Atlas Exchange</h3>
+                <p className="mt-1 text-xl font-bold text-neutral-900">
+                  RP16520
+                </p>
+                <div className="mt-3 w-60 max-w-full text-sm text-zinc-600">
+                  <p className="leading-5">
+                    4140 Parker Rd. Allentown, New Mexico 31134
+                  </p>
+                  <p className="mt-1 leading-snug">07:00 - 20:00</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 items-center mt-11 w-full min-h-[46px] max-md:mt-10">
+              <Button
+                variant="outline"
+                size="xl"
+                className="flex-1 shrink gap-2.5 self-stretch px-6 py-3 my-auto text-base font-medium leading-snug text-green-900 rounded-md border border-green-900 border-solid basis-0 max-md:px-5"
               >
-                {category}
-              </Badge>
-            ))}
-            {categories.length > 3 && (
-              <Badge variant="secondary" className="text-xs">
-                +{categories.length - 3} more
-              </Badge>
-            )}
-          </div>
-        )}
-
-        <Separator className="my-3" />
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center justify-center"
-            onClick={() => {
-              window.open(
-                `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-                "_blank"
-              );
-            }}
-          >
-            <Navigation className="h-4 w-4 mr-1.5" />
-            Directions
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center justify-center"
-            onClick={() => {
-              console.log("Saved location:", location);
-            }}
-          >
-            <Star className="h-4 w-4 mr-1.5" />
-            Save
-          </Button>
-
-          {properties?.external_ids?.website && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="col-span-2 flex items-center justify-center mt-1"
-              onClick={() => {
-                window.open(properties.external_ids?.website, "_blank");
-              }}
-            >
-              <ExternalLink className="h-4 w-4 mr-1.5" />
-              Visit Website
-            </Button>
-          )}
-        </div>
-
-        <div className="mt-3 pt-2 border-t text-xs text-muted-foreground">
-          <div className="flex justify-between items-center">
-            <span className="truncate max-w-[170px]">
-              ID: {properties?.mapbox_id?.substring(0, 8)}...
-            </span>
-            <span className="text-right">
-              {lat.toFixed(4)}, {lng.toFixed(4)}
-            </span>
+                Get Direction
+              </Button>
+              <Select value={selectValue} onValueChange={handleSelectAction}>
+                <SelectTrigger
+                  hideIcon
+                  className="flex gap-2.5 items-center h-12 cursor-pointer self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px] bg-white focus:ring-0 focus:ring-offset-0 outline-none"
+                >
+                  <Image
+                    src="/svg/more.svg"
+                    alt="more icon"
+                    width={24}
+                    height={24}
+                    priority
+                    className="w-full h-6"
+                  />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl shadow-lg bg-white border border-gray-100 min-w-[220px] py-2">
+                  <SelectItem
+                    value="rate-alert"
+                    noCheckIcon
+                    className="inline-flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-t-xl"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src="/svg/rate-alert.svg"
+                        alt="rate alert icon"
+                        width={20}
+                        height={20}
+                        priority
+                        className="w-5 h-5 opacity-80"
+                      />
+                      <span>Rate Alert</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem
+                    value="share"
+                    noCheckIcon
+                    className="flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-5 h-5 opacity-70" />
+                      <span>Share this Exchange</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem
+                    value="call"
+                    noCheckIcon
+                    className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-b-xl"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-5 h-5 opacity-70" />
+                      <span>Call Atlas exchange ( Mobile )</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
     </Popup>
   );
 }
