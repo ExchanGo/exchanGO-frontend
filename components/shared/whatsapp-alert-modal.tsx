@@ -24,6 +24,7 @@ import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import { FloatingLabelInput } from "../ui/FloatingLabelInput";
 import { FloatingSelect } from "@/components/ui/FloatingSelect";
 import React from "react";
+import { FloatingAmountInput } from "../ui/FloatingAmountInput";
 
 export default function WhatsAppAlertModal() {
   const { isOpen, type, payloads, onClose } = useModal();
@@ -38,6 +39,7 @@ export default function WhatsAppAlertModal() {
   const [targetRate, setTargetRate] = useState("$0.10");
   const [newsletter, setNewsletter] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [sourceCurrency, setSourceCurrency] = useState("USD");
 
   // Reset state when modal is closed
   useEffect(() => {
@@ -293,9 +295,10 @@ export default function WhatsAppAlertModal() {
                     </div>
 
                     <div className="flex-1">
-                      <FloatingLabelInput
+                      <FloatingAmountInput
                         label="Amount"
-                        placeholder="$ 0.10"
+                        placeholder="Enter amount"
+                        currencyCode={sourceCurrency}
                         onChange={(value: string) =>
                           console.log("New Amount:", value)
                         }

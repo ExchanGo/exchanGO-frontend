@@ -348,4 +348,14 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+}
+
+/* Allow text selection in command items */
+[cmdk-item] {
+  user-select: text !important;
+}
+
+/* Override select-none class specifically */
+.select-none {
+  user-select: text !important;
 } 

@@ -10,7 +10,13 @@ import MapCotrols from "@/components/map/map-controls";
 import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
-import ModalContainerSearch from "@/components/shared/modal-container-search";
+import dynamic from "next/dynamic";
+
+// Dynamically import modal container with SSR disabled
+const ModalContainerSearch = dynamic(
+  () => import("@/components/shared/modal-container-search"),
+  { ssr: false }
+);
 
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
@@ -24,6 +30,9 @@ export default function Search() {
 
   // Effect to measure navbar height on mount and resize
   useEffect(() => {
+    // This will only run in the browser
+    if (typeof window === "undefined") return;
+
     const updateNavbarHeight = () => {
       const navbar = document.querySelector("nav");
       if (navbar) {
@@ -47,6 +56,9 @@ export default function Search() {
 
   // Effect to force map re-render when maximized state changes or when controls are used
   useEffect(() => {
+    // This will only run in the browser
+    if (typeof window === "undefined") return;
+
     const handleControlInteraction = () => {
       setKey((prev) => prev + 1);
     };

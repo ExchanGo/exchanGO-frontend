@@ -17,10 +17,10 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
   const { properties, geometry } = location;
 
   const name = properties?.name || "Unknown Location";
-  const address = properties?.full_address || properties?.address || "";
+  // const address = properties?.full_address || properties?.address || "";
   const categories = properties?.poi_category || [];
-  const brand = properties?.brand?.[0] || "";
-  const status = properties?.operational_status || "";
+  // const brand = properties?.brand?.[0] || "";
+  // const status = properties?.operational_status || "";
   const maki = properties?.maki || "";
 
   const lat = geometry?.coordinates?.[1] || properties?.coordinates?.latitude;

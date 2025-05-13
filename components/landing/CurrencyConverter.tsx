@@ -1,22 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "../ui/button";
-import { LoactionSelect } from "../ui/LocationSelect";
+import { LocationAutoComplete } from "../ui/LocationAutoComplete";
 import { CurrencySelect } from "../ui/CurrencySelect";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Loader from "../shared/Loader";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { getCurrencySymbol } from "@/lib/data/currencySymbols";
+import { motion, AnimatePresence } from "framer-motion";
+import { Separator } from "../ui/separator";
 
 const CurrencyConverter = () => {
   const router = useRouter();
   const [amount, setAmount] = useState("1000");
   const [isLoading, setIsLoading] = useState(false);
-  // const [location, setLocation] = useState("Birmingham - Eng");
-  // const [sourceCurrency, setSourceCurrency] = useState("USD");
-  // const [targetCurrency, setTargetCurrency] = useState("Rupiah");
+  const [location, setLocation] = useState("rabat");
+  const [sourceCurrency, setSourceCurrency] = useState("USD");
+  const [targetCurrency, setTargetCurrency] = useState("MAD");
+  const [currencySymbol, setCurrencySymbol] = useState("$");
 
   const handleCheckRates = () => {
     setIsLoading(true);
@@ -27,27 +31,59 @@ const CurrencyConverter = () => {
   };
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
+    setSourceCurrency(currencies.from);
+    setTargetCurrency(currencies.to);
     console.log("Selected currencies:", currencies);
   };
 
+  // Update currency symbol when source currency changes
+  useEffect(() => {
+    setCurrencySymbol(getCurrencySymbol(sourceCurrency));
+  }, [sourceCurrency]);
+
+  const handleLocationChange = (value: string) => {
+    setLocation(value);
+    console.log("Selected location:", value);
+  };
+
   return (
-    <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row items-center mx-16 my-10">
+    <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row items-center mx-24 my-10">
       {/* Location */}
-      <div className="flex-1 border-r py-3 px-5">
+      <div className="flex-1 py-3 px-5">
         <p className="text-sm text-black text-medium mb-2">Location</p>
 
-        <LoactionSelect
-          label="Change from"
+        <LocationAutoComplete
+          defaultValue={location}
+          onLocationChange={handleLocationChange}
+          label="Location"
           iconClassName="text-[#292D32]"
-          onValueChange={(value) => console.log("Selected city:", value)}
+          className="mt-2"
+        />
+      </div>
+
+      {/* Separator */}
+      <div className="h-[70px] flex items-center justify-center px-0.5">
+        <Separator
+          orientation="vertical"
+          className="h-[80%] w-[1px] bg-[var(--color-lite)]"
         />
       </div>
 
       {/* Amount */}
-      <div className="flex-1 border-r py-3 px-5">
+      <div className="flex-1 py-3 px-5">
         <p className="text-sm text-black text-medium mb-2">Amount</p>
         <div className="flex items-center">
-          <span className="text-lg mr-1">$</span>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={currencySymbol}
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 5 }}
+              className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)]"
+            >
+              {currencySymbol}
+            </motion.span>
+          </AnimatePresence>
           <input
             type="text"
             value={amount}
@@ -55,6 +91,14 @@ const CurrencyConverter = () => {
             className="w-full text-lg focus:outline-none"
           />
         </div>
+      </div>
+
+      {/* Separator */}
+      <div className="h-[70px] flex items-center justify-center px-0.5">
+        <Separator
+          orientation="vertical"
+          className="h-[80%] w-[1px] bg-[var(--color-lite)]"
+        />
       </div>
 
       <div className="flex-1 grow-2">
@@ -73,9 +117,12 @@ const CurrencyConverter = () => {
               </div>
 
               {/* Swap Button */}
-              <div className="flex items-center h-full">
+              <div className="flex items-center h-full overflow-hidden">
                 <div className="h-[70px] flex flex-col items-center justify-center">
-                  <div className="h-full w-[1.5px] bg-[var(--color-lite)]"></div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-full w-[1px] bg-[var(--color-lite)]"
+                  />
                   <button className="rounded-full">
                     <Image
                       src="/svg/exchange-rotate.svg"
@@ -86,7 +133,10 @@ const CurrencyConverter = () => {
                       priority
                     />
                   </button>
-                  <div className="h-full w-[1.5px] bg-[var(--color-lite)]"></div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-full w-[1px] bg-[var(--color-lite)]"
+                  />
                 </div>
               </div>
 
@@ -102,7 +152,7 @@ const CurrencyConverter = () => {
       </div>
 
       {/* Check Rates Button */}
-      <div className="flex items-center justify-center pl-3">
+      <div className="flex items-center justify-center pl-3 pr-3">
         <Button
           variant="gradient"
           onClick={handleCheckRates}

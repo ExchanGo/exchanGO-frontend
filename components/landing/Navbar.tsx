@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 
 export default function Navbar() {
   return (
-    <nav className="w-full py-4 px-8 flex justify-between items-center">
+    <nav className="w-full max-w-7xl mx-auto py-4 px-4 flex justify-between items-center">
       <div className="flex items-center">
         <Image
           src="/svg/Logo.svg"

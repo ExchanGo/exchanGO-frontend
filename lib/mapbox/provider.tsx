@@ -5,6 +5,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/context/map-context";
 import Loader from "@/components/shared/Loader";
+import dynamic from "next/dynamic";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -19,7 +20,7 @@ interface MapProviderProps {
   onLoad?: () => void;
 }
 
-export default function MapProvider({
+function MapProviderContent({
   mapContainerRef,
   initialViewState,
   children,
@@ -76,3 +77,8 @@ export default function MapProvider({
     </MapContext.Provider>
   );
 }
+
+// Export a dynamically imported version that only renders on client-side
+export default dynamic(() => Promise.resolve(MapProviderContent), {
+  ssr: false, // Completely disable server-side rendering for this component
+});
