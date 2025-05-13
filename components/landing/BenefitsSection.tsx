@@ -3,6 +3,7 @@ import SaveTime from "@/public/svg/save-time.svg";
 import TimeCompare from "@/public/svg/time-compare.svg";
 import UserReview from "@/public/svg/use-review.svg";
 import Image from "next/image";
+import { Typography } from "@/components/ui/typography";
 
 const benefits = [
   {
@@ -34,16 +35,23 @@ const BenefitsSection = () => {
       <div className="w-full max-w-7xl mx-auto px-4 mt-16">
         <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="md:w-1/2 mb-10 md:mb-0 md:pr-12">
-            <span className="text-exchange-medium font-medium text-base">
+            <span className="text-[var(--color-greeny)] text-sm font-bold">
               The Best Reasons to
             </span>
-            <h2 className="text-[32px] max-w-[454px] text-black md:text-4xl font-bold font-dm mt-2 mb-4">
+            <Typography
+              variant="h2"
+              fontFamily="dm"
+              className="text-[32px] max-w-[454px] text-black md:text-4xl font-bold mt-2 mb-4"
+            >
               Rely on Us for Transparent Exchange
-            </h2>
-            <p className="font-dm text-lg text-[#585858] mb-6 max-w-[350px]">
-              Searching for a great rate shouldn&apos;t be stressful. ExchanGo24
-              gives you a clear, instant view of all your options nearby.
-            </p>
+            </Typography>
+            <Typography
+              fontFamily="dm"
+              className="text-lg text-[#585858] mb-6 max-w-[350px]"
+            >
+              Don't waste time visiting exchange offices. Find the best rates in
+              seconds.
+            </Typography>
 
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center gap-4 mb-6">
@@ -58,12 +66,19 @@ const BenefitsSection = () => {
                   quality={75}
                 />
                 <div className="flex flex-col">
-                  <h3 className="font-bold font-dm text-xl text-black">
+                  <Typography
+                    variant="h3"
+                    fontFamily="dm"
+                    className="font-bold text-xl text-black"
+                  >
                     {benefit.title}
-                  </h3>
-                  <p className="text-[#585858] font-dm text-lg">
+                  </Typography>
+                  <Typography
+                    fontFamily="dm"
+                    className="text-[#585858] text-lg"
+                  >
                     {benefit.description}
-                  </p>
+                  </Typography>
                 </div>
               </div>
             ))}

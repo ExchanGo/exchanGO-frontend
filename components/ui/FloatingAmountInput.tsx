@@ -116,7 +116,7 @@ const FloatingAmountInput = React.forwardRef<
             transition={{ duration: 0.2 }}
             placeholder={isFocused ? "" : placeholder}
             className={cn(
-              "flex-1 text-lg placeholder:font-dm font-dm bg-transparent border-none",
+              "flex-1 text-lg placeholder:font-dm placeholder:text-sm font-dm bg-transparent border-none",
               "placeholder:text-[#585858]",
               "focus:outline-none focus:ring-0",
               "transition-colors duration-200"

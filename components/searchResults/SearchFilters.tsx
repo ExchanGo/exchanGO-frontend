@@ -2,28 +2,27 @@
 
 import React, { useState, useEffect } from "react";
 import { FloatingLabelInput } from "../ui/FloatingLabelInput";
-import { FloatingAmountInput } from "../ui/FloatingAmountInput";
 import { LocateFixed, MapPin } from "lucide-react";
 import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { getCurrencySymbol } from "@/lib/data/currencySymbols";
+import { FloatingAmountInput } from "../ui/FloatingAmountInput";
 
 export const SearchFilters: React.FC = () => {
+  const [currencySymbol, setCurrencySymbol] = useState("$");
   const [sourceCurrency, setSourceCurrency] = useState("USD");
-  const [targetCurrency, setTargetCurrency] = useState("MAD");
-  const [amount, setAmount] = useState("1");
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
-    setTargetCurrency(currencies.to);
     console.log("Selected currencies:", currencies);
   };
 
-  const handleAmountChange = (value: string) => {
-    setAmount(value);
-    console.log("New Amount:", value);
-  };
+  // Update currency symbol when source currency changes
+  useEffect(() => {
+    setCurrencySymbol(getCurrencySymbol(sourceCurrency));
+  }, [sourceCurrency]);
 
   return (
     <section className="flex overflow-hidden flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
@@ -45,39 +44,37 @@ export const SearchFilters: React.FC = () => {
                 label="Amount"
                 placeholder="Enter amount"
                 currencyCode={sourceCurrency}
-                onChange={handleAmountChange}
-                defaultValue={amount}
+                defaultValue="1"
+                onChange={(value: string) => console.log("New Amount:", value)}
               />
             </div>
           </div>
-
-          <div className="flex-1">
+          <div className="flex-1 pt-2">
             <DualCurrencySelector
-              fromLabel="Source"
-              toLabel="Target"
+              fromLabel="Source Currency"
+              toLabel="Target Currency"
               onCurrencyChange={handleCurrencyChange}
             >
               {({ fromProps, toProps, fromLabel, toLabel }) => (
-                <div className="flex gap-5">
-                  <div className="flex-1">
-                    <FloatingSelectCurrency
-                      {...fromProps}
-                      label="Source Currency"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <FloatingSelectCurrency
-                      {...toProps}
-                      label="Target Currency"
-                    />
-                  </div>
-                </div>
+                <>
+                  <FloatingSelectCurrency {...fromProps} label={fromLabel} />
+
+                  <Image
+                    src="/svg/exchange-rotate.svg"
+                    alt="Exchange currencies"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                    priority
+                  />
+
+                  <FloatingSelectCurrency {...toProps} label={toLabel} />
+                </>
               )}
             </DualCurrencySelector>
           </div>
-
-          <Button variant="gradient" className="h-12 px-6">
-            Search
+          <Button variant="gradient" className="h-12">
+            Check Rates
           </Button>
         </div>
         <div className="flex flex-col items-start mt-4 w-full text-sm font-medium text-right text-[var(--color-greeny)] cursor-pointer max-md:pr-5 max-md:max-w-full">

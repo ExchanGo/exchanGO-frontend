@@ -134,35 +134,32 @@ export function LocationAutoComplete({
         }}
         transition={{ duration: 0.2 }}
         className={cn(
-          "relative flex items-center w-full h-full rounded-lg bg-white",
-          "focus-within:outline-none hover:bg-gray-50 active:bg-gray-100",
+          "relative flex items-center w-full h-full rounded-lg bg-white cursor-pointer overflow-hidden",
+          "focus-within:outline-none",
           className
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* Hover background effect as a separate layer */}
         <div
-          className="flex items-center w-full cursor-pointer h-full py-2 px-0"
+          className={cn(
+            "absolute inset-0 opacity-0 transition-opacity duration-200",
+            isHovered && "opacity-100"
+          )}
+        />
+
+        <div
+          className="flex items-center w-full h-full py-2 px-0 relative z-10"
           onClick={() => setIsOpen(true)}
         >
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             <motion.div
-              initial={{ opacity: 0, x: -5 }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                y: isHovered ? [-1, 1, -1] : 0,
-              }}
+              key={isHovered ? "hovered" : "not-hovered"}
+              initial={{ opacity: 0.8 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0.8 }}
               className="flex-shrink-0 mr-2"
-              transition={{
-                y: {
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  repeatType: "reverse",
-                },
-                default: { duration: 0.2 },
-              }}
             >
               {prefixIcon || (
                 <MapPin
@@ -174,23 +171,21 @@ export function LocationAutoComplete({
           </AnimatePresence>
 
           <div
-            className="truncate flex-grow text-base text-[#585858] px-2"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            className="truncate flex-grow text-base text-[#585858] px-2 pointer-events-none select-none"
             tabIndex={0}
           >
             {selectedValue ? (
-              <span className="font-medium truncate block">
+              <span className="font-medium truncate block font-dm select-none">
                 {getDisplayValue()}
               </span>
             ) : (
-              <span className="text-gray-400">{placeholder}</span>
+              <span className="text-gray-400 select-none">{placeholder}</span>
             )}
           </div>
 
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3 }}
             className="flex-shrink-0"
           >
             <LocateFixed
@@ -218,42 +213,55 @@ export function LocationAutoComplete({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search location..."
-                className="flex-1 h-10 w-full py-3 text-sm bg-transparent outline-none placeholder:text-gray-400"
+                className="flex-1 h-10 w-full py-3 text-sm bg-transparent outline-none placeholder:text-gray-400 font-dm"
               />
               {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="p-1 rounded-full hover:bg-gray-100"
-                >
-                  <XCircle className="h-4 w-4 text-gray-400 hover:text-[var(--color-greeny)]" />
-                </button>
+                <AnimatePresence>
+                  <motion.button
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="p-1 rounded-full hover:bg-[var(--color-lite-soft)]"
+                  >
+                    <XCircle className="h-4 w-4 text-gray-400 hover:text-[var(--color-greeny)]" />
+                  </motion.button>
+                </AnimatePresence>
               )}
             </div>
 
             <div className="max-h-[300px] overflow-y-auto p-1">
               {filteredLocations.length === 0 ? (
-                <div className="py-8 text-center">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-8 text-center"
+                >
                   <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
                     <XCircle className="h-8 w-8" />
-                    <p className="text-sm">No results found.</p>
+                    <p className="text-sm font-dm">No results found.</p>
                   </div>
-                </div>
+                </motion.div>
               ) : (
                 <div className="py-1">
                   {filteredLocations.map((location) => (
-                    <div
+                    <motion.div
                       key={location.value}
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2 }}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer hover:bg-gray-50 transition-colors",
-                        location.value === selectedValue && "bg-gray-50"
+                        "flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer hover:bg-[var(--color-lite-soft)] transition-colors",
+                        location.value === selectedValue &&
+                          "bg-[var(--color-lite-soft)]"
                       )}
                       onClick={() => handleSelect(location.value)}
                     >
-                      <div className="flex items-center w-full justify-between">
+                      <div className="flex items-center w-full justify-between select-none">
                         <span
                           className={cn(
-                            "font-medium",
+                            "font-medium font-dm",
                             location.value === selectedValue &&
                               "text-[var(--color-greeny-bold)]"
                           )}
@@ -269,12 +277,13 @@ export function LocationAutoComplete({
                               stiffness: 500,
                               damping: 30,
                             }}
+                            className="text-[var(--color-greeny)]"
                           >
-                            <CheckCircle2 className="h-4 w-4 text-[var(--color-greeny)]" />
+                            <CheckCircle2 className="h-4 w-4" />
                           </motion.div>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}

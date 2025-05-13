@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { CurrencyRakingSelect } from "@/components/ui/CurrencyRakingSelect";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { getCurrencySymbol } from "@/lib/data/currencySymbols";
 
 const exchangeData = [
   {
@@ -45,9 +46,18 @@ const exchangeData = [
 ];
 
 const CityRanking = () => {
+  const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [sourceCurrency, setSourceCurrency] = useState("USD");
+
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
+    setSourceCurrency(currencies.from);
     console.log("Selected currencies:", currencies);
   };
+
+  // Update currency symbol when source currency changes
+  useEffect(() => {
+    setCurrencySymbol(getCurrencySymbol(sourceCurrency));
+  }, [sourceCurrency]);
 
   return (
     <div className="relative w-full min-h-screen bg-[url('/svg/bg-ranking.svg')] bg-cover bg-center bg-no-repeat">
@@ -87,12 +97,21 @@ const CityRanking = () => {
             <p className="text-sm font-medium font-dm text-black mb-2">
               Amount
             </p>
-            <Input
-              type="text"
-              placeholder="Enter amount"
-              defaultValue="$1"
-              className="bg-white border-0 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus-visible:outline-none px-0 py-0 h-6 font-dm md:text-lg text-[#585858]"
-            />
+            <div className="flex items-center">
+              <span
+                className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)] transition-opacity duration-150"
+                key={currencySymbol}
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {currencySymbol}
+              </span>
+              <Input
+                type="text"
+                placeholder="Enter amount"
+                defaultValue="1"
+                className="bg-white border-0 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus-visible:outline-none px-0 py-0 h-6 font-dm md:text-lg text-[#585858]"
+              />
+            </div>
           </div>
         </div>
 

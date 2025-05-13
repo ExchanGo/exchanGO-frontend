@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 import Loader from "../shared/Loader";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
 import { getCurrencySymbol } from "@/lib/data/currencySymbols";
-import { motion, AnimatePresence } from "framer-motion";
 import { Separator } from "../ui/separator";
+import { Typography } from "@/components/ui/typography";
 
 const CurrencyConverter = () => {
   const router = useRouter();
@@ -49,15 +49,16 @@ const CurrencyConverter = () => {
   return (
     <div className="w-auto max-w-full -mt-16 absolute z-30 inset-x-0 bg-white rounded-xl shadow-xl p-4 flex flex-col md:flex-row items-center mx-24 my-10">
       {/* Location */}
-      <div className="flex-1 py-3 px-5">
-        <p className="text-sm text-black text-medium mb-2">Location</p>
+      <div className="flex-1 max-w-[260px] py-3 px-5">
+        <Typography fontFamily="dm" className="text-sm text-black font-medium">
+          Location
+        </Typography>
 
         <LocationAutoComplete
           defaultValue={location}
           onLocationChange={handleLocationChange}
           label="Location"
           iconClassName="text-[#292D32]"
-          className="mt-2"
         />
       </div>
 
@@ -70,25 +71,27 @@ const CurrencyConverter = () => {
       </div>
 
       {/* Amount */}
-      <div className="flex-1 py-3 px-5">
-        <p className="text-sm text-black text-medium mb-2">Amount</p>
+      <div className="flex-1 max-w-[260px] py-3 px-5">
+        <Typography
+          fontFamily="dm"
+          className="text-sm text-black font-medium mb-2"
+        >
+          Amount
+        </Typography>
         <div className="flex items-center">
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={currencySymbol}
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
-              className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)]"
-            >
-              {currencySymbol}
-            </motion.span>
-          </AnimatePresence>
+          <span
+            className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)] transition-opacity duration-150"
+            key={currencySymbol}
+            style={{ fontFamily: "var(--font-dm-sans)" }}
+          >
+            {currencySymbol}
+          </span>
           <input
             type="text"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="w-full text-lg focus:outline-none"
+            style={{ fontFamily: "var(--font-dm-sans)" }}
           />
         </div>
       </div>
@@ -110,9 +113,12 @@ const CurrencyConverter = () => {
           {({ fromProps, toProps, fromLabel, toLabel }) => (
             <>
               <div className="flex-1 py-3 px-5">
-                <p className="text-sm text-black text-medium mb-2">
+                <Typography
+                  fontFamily="dm"
+                  className="text-sm text-black font-medium mb-2"
+                >
                   Source Currency
-                </p>
+                </Typography>
                 <CurrencySelect {...fromProps} label={fromLabel} />
               </div>
 
@@ -141,9 +147,12 @@ const CurrencyConverter = () => {
               </div>
 
               <div className="flex-1 p-3">
-                <p className="text-sm text-black text-medium mb-2">
+                <Typography
+                  fontFamily="dm"
+                  className="text-sm text-black font-medium mb-2"
+                >
                   Target Currency
-                </p>
+                </Typography>
                 <CurrencySelect {...toProps} label={toLabel} />
               </div>
             </>
@@ -157,7 +166,8 @@ const CurrencyConverter = () => {
           variant="gradient"
           onClick={handleCheckRates}
           size="lg"
-          className="leading-snug font-dm"
+          className="leading-snug"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
         >
           <Clock className="h-5 w-5 text-[var(--color-greeny)]" />
           Check Rates
