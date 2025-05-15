@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { CurrencyRakingSelect } from "@/components/ui/CurrencyRakingSelect";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
 import { getCurrencySymbol } from "@/lib/data/currencySymbols";
+import { motion } from "framer-motion";
 
 const exchangeData = [
   {
@@ -48,6 +49,7 @@ const exchangeData = [
 const CityRanking = () => {
   const [currencySymbol, setCurrencySymbol] = useState("$");
   const [sourceCurrency, setSourceCurrency] = useState("USD");
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
@@ -58,6 +60,95 @@ const CityRanking = () => {
   useEffect(() => {
     setCurrencySymbol(getCurrencySymbol(sourceCurrency));
   }, [sourceCurrency]);
+
+  // Animation variants for rows
+  const rowVariants = {
+    initial: {
+      scale: 1,
+      backgroundColor: "rgba(255, 255, 255, 1)",
+      y: 0,
+      transition: {
+        duration: 0.2,
+        ease: [0.4, 0, 0.2, 1],
+      },
+    },
+    hover: {
+      scale: 1.015,
+      backgroundColor: "rgba(248, 250, 249, 1)",
+      y: -3,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+        mass: 0.8,
+        velocity: 2,
+      },
+    },
+  };
+
+  // Animation variants for medal and ranking icons
+  const medalVariants = {
+    initial: {
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut",
+      },
+    },
+    hover: {
+      scale: 1.15,
+      rotate: -10,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 15,
+        mass: 0.8,
+        velocity: 2,
+      },
+    },
+  };
+
+  // Animation variants for text
+  const textVariants = {
+    initial: {
+      color: "#585858",
+      transition: {
+        duration: 0.15,
+        ease: "easeOut",
+      },
+    },
+    hover: {
+      color: "var(--color-greeny-bold)",
+      transition: {
+        duration: 0.15,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  // Animation variants for best rate
+  const bestRateVariants = {
+    initial: {
+      color: "#585858",
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut",
+      },
+    },
+    hover: {
+      color: "var(--color-greeny-bold)",
+      scale: 1.04,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        mass: 0.8,
+        velocity: 2,
+      },
+    },
+  };
 
   return (
     <div className="relative w-full min-h-screen bg-[url('/svg/bg-ranking.svg')] bg-cover bg-center bg-no-repeat">
@@ -116,8 +207,8 @@ const CityRanking = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <div className="grid grid-cols-5 gap-y-2">
-            {/* Header */}
+          {/* Table Header */}
+          <div className="grid grid-cols-5 gap-y-2 mb-2">
             <div className="contents">
               <div className="font-medium text-[#111111] p-4 text-sm font-dm text-left w-24">
                 Rank
@@ -135,13 +226,53 @@ const CityRanking = () => {
                 Exchange office
               </div>
             </div>
+          </div>
 
-            {/* Rows */}
-            {exchangeData.map((row) => (
-              <div key={row.rank} className="contents group">
-                <div className="bg-white p-4 group-first:rounded-l-lg group-first:border-l rounded-l-xl">
+          {/* Rows */}
+          {exchangeData.map((row) => (
+            <motion.div
+              key={row.rank}
+              className="relative mb-3 rounded-[1rem] overflow-hidden transform-gpu"
+              initial="initial"
+              whileHover="hover"
+              layout
+              layoutId={`row-${row.rank}`}
+            >
+              <motion.div
+                className="absolute inset-0 bg-white rounded-[1rem] transform-gpu"
+                variants={rowVariants}
+                style={{
+                  borderRadius: "1rem",
+                  willChange: "transform",
+                }}
+              />
+
+              <motion.div
+                className="relative grid grid-cols-5 rounded-[1rem] overflow-hidden transform-gpu"
+                variants={rowVariants}
+                onHoverStart={() => setHoveredRow(row.rank)}
+                onHoverEnd={() => setHoveredRow(null)}
+                style={{
+                  willChange: "transform",
+                }}
+              >
+                <div className="p-4 flex items-center justify-center">
                   {row.rank <= 3 ? (
-                    <div className={`inline-flex items-center justify-center`}>
+                    <motion.div
+                      variants={medalVariants}
+                      className="inline-flex items-center justify-center transform-gpu"
+                      style={{
+                        willChange: "transform",
+                      }}
+                      whileHover={{
+                        rotate: [0, -8, 8, -4, 0],
+                        transition: {
+                          duration: 0.4,
+                          ease: [0.4, 0, 0.2, 1],
+                          times: [0, 0.25, 0.5, 0.75, 1],
+                        },
+                      }}
+                    >
                       <Image
                         src={
                           row.rank === 1
@@ -161,28 +292,47 @@ const CityRanking = () => {
                         height={36}
                         className="w-9 h-9"
                       />
-                    </div>
+                    </motion.div>
                   ) : (
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                    <motion.span
+                      variants={medalVariants}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-black font-dm font-medium"
+                    >
                       {row.rank}
-                    </span>
+                    </motion.span>
                   )}
                 </div>
-                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858]">
+
+                <motion.div
+                  variants={textVariants}
+                  className="flex flex-col justify-center p-4 font-dm font-medium cursor-pointer"
+                >
                   {row.city}
-                </div>
-                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858]">
+                </motion.div>
+
+                <motion.div
+                  variants={textVariants}
+                  className="flex flex-col justify-center p-4 font-dm font-medium"
+                >
                   {row.averageRate}
-                </div>
-                <div className="flex flex-col justify-center bg-white p-4 font-dm text-[#585858] font-medium">
+                </motion.div>
+
+                <motion.div
+                  variants={bestRateVariants}
+                  className="flex flex-col justify-center p-4 font-dm font-medium"
+                >
                   {row.bestRate}
-                </div>
-                <div className="flex flex-col justify-center bg-white p-4 font-dm font-medium text-[#585858] group-last:rounded-r-lg rounded-r-xl">
+                </motion.div>
+
+                <motion.div
+                  variants={textVariants}
+                  className="flex flex-col justify-center p-4 font-dm font-medium cursor-pointer hover:underline"
+                >
                   {row.office}
-                </div>
-              </div>
-            ))}
-          </div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
