@@ -55,7 +55,7 @@ const CurrencyConverter = () => {
         <LocationAutoComplete
           defaultValue={location}
           onLocationChange={handleLocationChange}
-          label="Location"
+          // label="Location"
           iconClassName="text-[#292D32]"
         />
       </div>

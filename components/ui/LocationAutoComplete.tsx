@@ -44,7 +44,6 @@ interface LocationAutoCompleteProps {
   defaultValue?: string;
   locations?: LocationOption[];
   onLocationChange?: (value: string) => void;
-  label?: string;
   placeholder?: string;
   prefixIcon?: React.ReactNode;
   iconClassName?: string;
@@ -56,7 +55,6 @@ export function LocationAutoComplete({
   defaultValue = "rabat",
   locations = defaultCities,
   onLocationChange,
-  label,
   placeholder = "Search for a location...",
   prefixIcon,
   iconClassName,
