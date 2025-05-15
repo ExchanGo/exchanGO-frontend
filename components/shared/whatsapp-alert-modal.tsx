@@ -35,11 +35,9 @@ export default function WhatsAppAlertModal() {
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedOffice, setSelectedOffice] = useState<string>("");
   const [phone, setPhone] = useState<Value | undefined>(undefined);
-  const [sourceAmount, setSourceAmount] = useState("1 MAD");
-  const [targetRate, setTargetRate] = useState("$0.10");
   const [newsletter, setNewsletter] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [sourceCurrency, setSourceCurrency] = useState("USD");
+  const sourceCurrency = "USD";
 
   // Reset state when modal is closed
   useEffect(() => {
@@ -49,8 +47,6 @@ export default function WhatsAppAlertModal() {
       setSelectedCities([]);
       setSelectedOffice("");
       setPhone(undefined);
-      setSourceAmount("1 MAD");
-      setTargetRate("$0.10");
       setNewsletter(false);
       setSuccess(false);
     }
@@ -363,7 +359,8 @@ export default function WhatsAppAlertModal() {
                 Alarm rate has been successfully set
               </DialogTitle>
               <DialogDescription className="text-[#585858] text-sm mb-6 max-w-[380px] mx-auto">
-                You'll receive a WhatsApp alert when 1 MAD reaches 0.10 USD in{" "}
+                You&apos;ll receive a WhatsApp alert when 1 MAD reaches 0.10 USD
+                in{" "}
                 {mode === "area"
                   ? selectedCities.join(", ") || "All Area"
                   : selectedOffice || "All Office"}

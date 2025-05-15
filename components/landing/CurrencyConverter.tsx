@@ -19,7 +19,6 @@ const CurrencyConverter = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState("rabat");
   const [sourceCurrency, setSourceCurrency] = useState("USD");
-  const [targetCurrency, setTargetCurrency] = useState("MAD");
   const [currencySymbol, setCurrencySymbol] = useState("$");
 
   const handleCheckRates = () => {
@@ -32,7 +31,6 @@ const CurrencyConverter = () => {
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
-    setTargetCurrency(currencies.to);
     console.log("Selected currencies:", currencies);
   };
 

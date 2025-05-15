@@ -14,25 +14,6 @@ import Image from "next/image";
 import { Typography } from "@/components/ui/typography";
 import { motion, AnimatePresence } from "framer-motion";
 
-const accordionItemVariants = {
-  closed: {
-    scale: 1,
-    transition: {
-      type: "spring",
-      duration: 0.4,
-      bounce: 0,
-    },
-  },
-  open: {
-    scale: 1.02,
-    transition: {
-      type: "spring",
-      duration: 0.4,
-      bounce: 0,
-    },
-  },
-};
-
 const contentVariants = {
   closed: {
     opacity: 0,

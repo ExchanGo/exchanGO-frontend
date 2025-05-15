@@ -12,32 +12,21 @@ type LocationPopupProps = {
   onClose?: () => void;
 };
 export function LocationPopup({ location, onClose }: LocationPopupProps) {
+  const [selectValue, setSelectValue] = useState("");
+
   if (!location) return null;
 
   const { properties, geometry } = location;
 
   const name = properties?.name || "Unknown Location";
   // const address = properties?.full_address || properties?.address || "";
-  const categories = properties?.poi_category || [];
+  // const categories = properties?.poi_category || [];
   // const brand = properties?.brand?.[0] || "";
   // const status = properties?.operational_status || "";
-  const maki = properties?.maki || "";
+  // const maki = properties?.maki || "";
 
   const lat = geometry?.coordinates?.[1] || properties?.coordinates?.latitude;
   const lng = geometry?.coordinates?.[0] || properties?.coordinates?.longitude;
-
-  const getIcon = () => {
-    const allKeys = [maki, ...(categories || [])];
-
-    for (const key of allKeys) {
-      const lower = key?.toLowerCase();
-      if (iconMap[lower]) return iconMap[lower];
-    }
-
-    return <LocateIcon className="h-5 w-5" />;
-  };
-
-  const [selectValue, setSelectValue] = useState("");
 
   const handleSelectAction = (value: string) => {
     if (value === "rate-alert") {

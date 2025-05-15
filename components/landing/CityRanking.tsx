@@ -49,7 +49,6 @@ const exchangeData = [
 const CityRanking = () => {
   const [currencySymbol, setCurrencySymbol] = useState("$");
   const [sourceCurrency, setSourceCurrency] = useState("USD");
-  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
@@ -250,8 +249,6 @@ const CityRanking = () => {
               <motion.div
                 className="relative grid grid-cols-5 rounded-[1rem] overflow-hidden transform-gpu"
                 variants={rowVariants}
-                onHoverStart={() => setHoveredRow(row.rank)}
-                onHoverEnd={() => setHoveredRow(null)}
                 style={{
                   willChange: "transform",
                 }}

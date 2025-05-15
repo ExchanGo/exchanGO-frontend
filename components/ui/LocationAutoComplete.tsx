@@ -56,7 +56,7 @@ export function LocationAutoComplete({
   defaultValue = "rabat",
   locations = defaultCities,
   onLocationChange,
-  label = "Location",
+  label,
   placeholder = "Search for a location...",
   prefixIcon,
   iconClassName,
@@ -64,7 +64,6 @@ export function LocationAutoComplete({
   className,
 }: LocationAutoCompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);

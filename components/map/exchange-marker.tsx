@@ -126,7 +126,6 @@ const ExchangeMarker: React.FC<ExchangeMarkerProps> = ({
 
     // Create marker at the location
     const markerElement = markerRef.current;
-    const popup = popupRef.current;
 
     // Add the marker to the map (implementation depends on your mapbox setup)
     // This is a placeholder - you need to adapt it to your existing code

@@ -53,10 +53,6 @@ const MultipleSelector: React.FC<MultipleSelectorProps> = ({
     opt.label.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Floating label logic
-  const showFloating =
-    isFocused || selected.length > 0 || open || search.length > 0;
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

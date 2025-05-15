@@ -1,28 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FloatingLabelInput } from "../ui/FloatingLabelInput";
 import { LocateFixed, MapPin } from "lucide-react";
 import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
-import { getCurrencySymbol } from "@/lib/data/currencySymbols";
 import { FloatingAmountInput } from "../ui/FloatingAmountInput";
 
 export const SearchFilters: React.FC = () => {
-  const [currencySymbol, setCurrencySymbol] = useState("$");
   const [sourceCurrency, setSourceCurrency] = useState("USD");
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
     console.log("Selected currencies:", currencies);
   };
-
-  // Update currency symbol when source currency changes
-  useEffect(() => {
-    setCurrencySymbol(getCurrencySymbol(sourceCurrency));
-  }, [sourceCurrency]);
 
   return (
     <section className="flex overflow-hidden flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">

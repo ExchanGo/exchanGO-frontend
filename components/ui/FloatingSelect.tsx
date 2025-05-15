@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { LucideIcon, Check, ChevronsUpDown } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import {
   Select,
   SelectContent,

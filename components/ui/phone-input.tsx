@@ -198,7 +198,7 @@ const findCountryByDialCode = (
         return parsed.country;
       }
     }
-  } catch (e) {
+  } catch (_) {
     // Continue to the next method if parsing fails
   }
 
@@ -235,7 +235,7 @@ getCountries().forEach((country) => {
   try {
     const code = getCountryCallingCode(country);
     countryCodeMap.set(code, country);
-  } catch (e) {
+  } catch (_) {
     // Skip countries that don't have codes
   }
 });
@@ -314,7 +314,7 @@ const PhoneInput = React.forwardRef<
             // Trigger a re-render by updating the force update counter
             setForceUpdate((prev) => prev + 1);
           }
-        } catch (e) {
+        } catch (_) {
           // Ignore errors in case the country code can't be retrieved
         }
       }
@@ -339,7 +339,7 @@ const PhoneInput = React.forwardRef<
                 setSelectedCountry(props.defaultCountry);
                 return;
               }
-            } catch (e) {
+            } catch (_) {
               // Continue if there's an error
             }
           }
@@ -351,7 +351,7 @@ const PhoneInput = React.forwardRef<
               setSelectedCountry(parsed.country);
               return;
             }
-          } catch (e) {
+          } catch (_) {
             // Continue to the next method if parsing fails
           }
 

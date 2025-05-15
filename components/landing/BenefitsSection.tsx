@@ -49,8 +49,8 @@ const BenefitsSection = () => {
               fontFamily="dm"
               className="text-lg text-[#585858] mb-6 max-w-[350px]"
             >
-              Don't waste time visiting exchange offices. Find the best rates in
-              seconds.
+              Don&apos;t waste time visiting exchange offices. Find the best
+              rates in seconds.
             </Typography>
 
             {benefits.map((benefit, index) => (
