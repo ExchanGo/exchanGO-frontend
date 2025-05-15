@@ -1,5 +1,5 @@
-import { LocationFeature, iconMap } from "@/lib/mapbox/utils";
-import { LocateIcon, ExternalLink, Phone, Timer } from "lucide-react";
+import { LocationFeature } from "@/lib/mapbox/utils";
+import { ExternalLink, Phone, Timer } from "lucide-react";
 import Popup from "./map-popup";
 import { Button } from "../ui/button";
 import Image from "next/image";
