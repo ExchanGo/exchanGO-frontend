@@ -89,9 +89,26 @@ const FloatingAmountInput = React.forwardRef<
           <AnimatePresence mode="wait">
             <motion.span
               key={currencySymbol}
-              initial={{ opacity: 0, y: -3 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 3 }}
+              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: {
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30,
+                  mass: 0.8,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: -10,
+                scale: 0.8,
+                transition: {
+                  duration: 0.2,
+                },
+              }}
               className={cn(
                 "text-lg font-medium min-w-[24px] flex items-center justify-center",
                 isFocused ? "text-[var(--color-greeny-bold)]" : "text-[#585858]"

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { CurrencyRakingSelect } from "@/components/ui/CurrencyRakingSelect";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
 import { getCurrencySymbol } from "@/lib/data/currencySymbols";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const exchangeData = [
   {
@@ -188,13 +188,35 @@ const CityRanking = () => {
               Amount
             </p>
             <div className="flex items-center">
-              <span
-                className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)] transition-opacity duration-150"
-                key={currencySymbol}
-                style={{ fontFamily: "var(--font-dm-sans)" }}
-              >
-                {currencySymbol}
-              </span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currencySymbol}
+                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30,
+                      mass: 0.8,
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: -10,
+                    scale: 0.8,
+                    transition: {
+                      duration: 0.2,
+                    },
+                  }}
+                  className="text-lg mr-1 font-medium text-[var(--color-greeny-bold)]"
+                  style={{ fontFamily: "var(--font-dm-sans)" }}
+                >
+                  {currencySymbol}
+                </motion.span>
+              </AnimatePresence>
               <Input
                 type="text"
                 placeholder="Enter amount"
