@@ -77,7 +77,7 @@ const FloatingAmountInput = React.forwardRef<
           }}
           transition={{ duration: 0.2 }}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 w-full",
+            "flex items-center gap-0 px-4 py-3 w-full",
             "rounded-lg border",
             "focus-within:ring-1 focus-within:ring-[var(--color-greeny)]",
             "relative pt-4 bg-white",
@@ -110,7 +110,7 @@ const FloatingAmountInput = React.forwardRef<
                 },
               }}
               className={cn(
-                "text-lg font-medium min-w-[24px] flex items-center justify-center",
+                "text-sm font-medium min-w-[25px] flex items-center justify-center mr-1",
                 isFocused ? "text-[var(--color-greeny-bold)]" : "text-[#585858]"
               )}
             >
@@ -133,7 +133,7 @@ const FloatingAmountInput = React.forwardRef<
             transition={{ duration: 0.2 }}
             placeholder={isFocused ? "" : placeholder}
             className={cn(
-              "flex-1 text-lg placeholder:font-dm placeholder:text-sm font-dm bg-transparent border-none",
+              "flex-1 text-sm placeholder:font-dm font-medium placeholder:text-sm font-dm bg-transparent border-none",
               "placeholder:text-[#585858]",
               "focus:outline-none focus:ring-0",
               "transition-colors duration-200"

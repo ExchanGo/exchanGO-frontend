@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import DualCurrencySelector from "../ui/DualCurrencySelector";
 import { FloatingAmountInput } from "../ui/FloatingAmountInput";
+import { FloatingLocationAutoComplete } from "../ui/FloatingLocationAutoComplet";
 
 export const SearchFilters: React.FC = () => {
   const [sourceCurrency, setSourceCurrency] = useState("USD");
@@ -18,16 +19,15 @@ export const SearchFilters: React.FC = () => {
   };
 
   return (
-    <section className="flex overflow-hidden flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
+    <section className="flex flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
       <div className="w-full max-md:max-w-full">
         <div className="flex flex-wrap gap-5 items-end w-full max-md:max-w-full">
           <div className="flex gap-5 items-center min-w-60">
             <div className="self-stretch pt-2 my-auto w-[157px]">
-              <FloatingLabelInput
+              <FloatingLocationAutoComplete
                 label="Location"
                 placeholder="Central park"
-                icon={MapPin}
-                onChange={(value: string) =>
+                onLocationChange={(value: string) =>
                   console.log("New location:", value)
                 }
               />
