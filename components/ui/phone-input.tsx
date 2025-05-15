@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  CheckIcon,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  X,
-  Phone,
-} from "lucide-react";
+import { CheckIcon, ChevronDown, Search, X } from "lucide-react";
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
 import { motion, AnimatePresence } from "framer-motion";

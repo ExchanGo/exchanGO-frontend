@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useModal, closeModal } from "@/store/modals";
 import { useState, useEffect } from "react";
-import { ChevronLeft, CheckCircle2, LocateFixed } from "lucide-react";
+import { ChevronLeft, LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import MultipleSelector, {
