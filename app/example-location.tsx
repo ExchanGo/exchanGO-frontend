@@ -32,7 +32,7 @@ export default function ExampleLocation() {
           <LocationAutoComplete
             defaultValue={selectedLocation}
             onLocationChange={handleLocationChange}
-            label="Select City"
+            // label="Select City"
             placeholder="Type to search cities..."
           />
         </div>
@@ -42,7 +42,7 @@ export default function ExampleLocation() {
           <LocationAutoComplete
             defaultValue="new-york"
             onLocationChange={console.log}
-            label="International Cities"
+            // label="International Cities"
             locations={[
               { value: "new-york", label: "New York" },
               { value: "london", label: "London" },
@@ -58,7 +58,7 @@ export default function ExampleLocation() {
           <LocationAutoComplete
             defaultValue={selectedLocation}
             onLocationChange={handleLocationChange}
-            label="Location"
+            // label="Location"
             className="bg-gray-50"
             prefixIconClassName="text-blue-500"
             iconClassName="text-blue-500"
