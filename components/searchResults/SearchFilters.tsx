@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FloatingLabelInput } from "../ui/FloatingLabelInput";
-import { LocateFixed, MapPin } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import { FloatingSelectCurrency } from "../ui/floating-select-currency";
 import Image from "next/image";
 import { Button } from "../ui/button";
