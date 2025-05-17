@@ -1,11 +1,25 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { StyleSpecification } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/context/map-context";
 import Loader from "@/components/shared/Loader";
 import dynamic from "next/dynamic";
+
+// Declare global window interface extension
+declare global {
+  interface Window {
+    mapboxgl?: {
+      map?: mapboxgl.Map | null;
+    };
+  }
+}
+
+// Define interface for map container element
+interface MapboxHTMLElement extends HTMLDivElement {
+  __mbMap?: mapboxgl.Map;
+}
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -18,6 +32,13 @@ let isInitialized = false;
 
 // Store the map instance globally for easier access from outside
 let globalMapInstance: mapboxgl.Map | null = null;
+
+// Define types for Mapbox style layer
+interface MapboxStyleLayer {
+  id: string;
+  type: string;
+  paint?: Record<string, unknown>;
+}
 
 // Create a custom Mapbox style with pre-set water color
 const createCustomMapStyle = async () => {
@@ -36,33 +57,31 @@ const createCustomMapStyle = async () => {
     // Modify the style to include blue water before initialization
     if (baseStyle && baseStyle.layers) {
       // Find and modify all water layers
-      baseStyle.layers.forEach(
-        (layer: { id: string; type: string; paint?: any }) => {
-          if (layer.id.includes("water") && layer.type === "fill") {
-            if (!layer.paint) layer.paint = {};
-            layer.paint["fill-color"] = WATER_COLOR;
-            if (layer.paint["fill-outline-color"]) {
-              layer.paint["fill-outline-color"] = WATER_COLOR;
-            }
-          }
-
-          // Also modify any other water-related layers
-          if (
-            (layer.id.includes("marine") ||
-              layer.id.includes("ocean") ||
-              layer.id.includes("sea") ||
-              layer.id.includes("blue")) &&
-            layer.type === "fill"
-          ) {
-            if (!layer.paint) layer.paint = {};
-            layer.paint["fill-color"] = WATER_COLOR;
+      baseStyle.layers.forEach((layer: MapboxStyleLayer) => {
+        if (layer.id.includes("water") && layer.type === "fill") {
+          if (!layer.paint) layer.paint = {};
+          layer.paint["fill-color"] = WATER_COLOR;
+          if (layer.paint["fill-outline-color"]) {
+            layer.paint["fill-outline-color"] = WATER_COLOR;
           }
         }
-      );
+
+        // Also modify any other water-related layers
+        if (
+          (layer.id.includes("marine") ||
+            layer.id.includes("ocean") ||
+            layer.id.includes("sea") ||
+            layer.id.includes("blue")) &&
+          layer.type === "fill"
+        ) {
+          if (!layer.paint) layer.paint = {};
+          layer.paint["fill-color"] = WATER_COLOR;
+        }
+      });
 
       // Set the background to a light color
       const backgroundLayer = baseStyle.layers.find(
-        (layer: { id: string; paint?: any }) => layer.id === "background"
+        (layer: MapboxStyleLayer) => layer.id === "background"
       );
       if (backgroundLayer && backgroundLayer.paint) {
         backgroundLayer.paint["background-color"] = LAND_COLOR;
@@ -77,7 +96,7 @@ const createCustomMapStyle = async () => {
 };
 
 interface MapProviderProps {
-  mapContainerRef: React.RefObject<HTMLDivElement | null>;
+  mapContainerRef: React.RefObject<MapboxHTMLElement | null>;
   initialViewState: {
     longitude: number;
     latitude: number;
@@ -95,7 +114,7 @@ function MapProviderContent({
 }: MapProviderProps) {
   const mapInstance = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mapStyle, setMapStyle] = useState<any>(null);
+  const [mapStyle, setMapStyle] = useState<StyleSpecification | null>(null);
 
   // Step 1: Fetch and prepare the style first
   useEffect(() => {
@@ -117,20 +136,20 @@ function MapProviderContent({
     // If we already have a map instance or no container/style, bail out
     if (!mapContainerRef.current || mapInstance.current || !mapStyle) return;
 
+    // Store container reference for cleanup function
+    const containerRef = mapContainerRef.current;
+
     // Check if we already have a global map instance we can reuse
-    if (globalMapInstance && document.contains(mapContainerRef.current)) {
+    if (globalMapInstance && document.contains(containerRef)) {
       console.log("Reusing existing map instance");
       mapInstance.current = globalMapInstance;
 
       // Make sure the map is attached to the current container
-      if (
-        mapContainerRef.current &&
-        mapContainerRef.current !== globalMapInstance.getContainer()
-      ) {
+      if (containerRef && containerRef !== globalMapInstance.getContainer()) {
         try {
           // Move the map to the new container
           globalMapInstance.getContainer().remove();
-          mapContainerRef.current.appendChild(globalMapInstance.getContainer());
+          containerRef.appendChild(globalMapInstance.getContainer());
           globalMapInstance.resize();
         } catch (e) {
           console.warn("Error reattaching map:", e);
@@ -150,7 +169,7 @@ function MapProviderContent({
     // Initialize a new map if needed
     console.log("Creating new map instance");
     const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
+      container: containerRef,
       style: mapStyle, // Use our custom style with blue water
       center: [initialViewState.longitude, initialViewState.latitude],
       zoom: initialViewState.zoom,
@@ -168,13 +187,15 @@ function MapProviderContent({
     globalMapInstance = map;
 
     // Store the map instance on the container element for easy retrieval
-    if (mapContainerRef.current) {
-      (mapContainerRef.current as any).__mbMap = map;
+    if (containerRef) {
+      containerRef.__mbMap = map;
     }
 
     // Also store on window for global access
-    (window as any).mapboxgl = (window as any).mapboxgl || {};
-    (window as any).mapboxgl.map = map;
+    if (typeof window !== "undefined") {
+      window.mapboxgl = window.mapboxgl || {};
+      window.mapboxgl.map = map;
+    }
 
     // Once the map is loaded, we're done
     map.on("load", () => {
@@ -185,20 +206,20 @@ function MapProviderContent({
     // Clean up only if we're removing the map entirely
     return () => {
       // We only remove the map if the container is removed from the DOM
-      if (
-        mapContainerRef.current &&
-        !document.contains(mapContainerRef.current)
-      ) {
+      if (containerRef && !document.contains(containerRef)) {
         console.log("Removing map instance");
         if (mapInstance.current) {
           mapInstance.current.remove();
           mapInstance.current = null;
           globalMapInstance = null;
-          (window as any).mapboxgl.map = null;
+
+          if (typeof window !== "undefined" && window.mapboxgl) {
+            window.mapboxgl.map = null;
+          }
         }
       }
     };
-  }, [initialViewState, mapContainerRef, onLoad, mapStyle]);
+  }, [initialViewState, onLoad, mapStyle]);
 
   // Handle window resize to update the map
   useEffect(() => {
