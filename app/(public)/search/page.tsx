@@ -122,7 +122,7 @@ export default function Search() {
           <div
             className={cn(
               "sticky w-full max-md:relative max-md:h-[300px] transition-all duration-300",
-              isMapMaximized && "relative left-0 z-50"
+              isMapMaximized && "fixed inset-x-0 z-50 !top-[125px]"
             )}
             style={{
               top: !isMapMaximized
@@ -134,11 +134,14 @@ export default function Search() {
                 ? navbarHeight > 0
                   ? `calc(100vh - ${navbarHeight}px)`
                   : "calc(100vh - 125px)"
-                : `calc(100vh - ${navbarHeight}px)`,
+                : "calc(100vh - 125px)",
             }}
           >
             <div
-              className="w-full h-full transition-all duration-300"
+              className={cn(
+                "w-full h-full transition-all duration-300",
+                isMapMaximized && "overflow-hidden"
+              )}
               style={{
                 height: !isMapMaximized
                   ? navbarHeight > 0
