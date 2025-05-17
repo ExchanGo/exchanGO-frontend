@@ -4,8 +4,7 @@ import { LocationFeature } from "@/lib/mapbox/utils";
 import Marker from "./map-marker";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { useMap } from "@/context/map-context";
+// import { useMap } from "@/context/map-context";
 
 interface LocationMarkerProps {
   location: LocationFeature;
@@ -18,7 +17,7 @@ export function LocationMarker({
   onHover,
   isSelected = false,
 }: LocationMarkerProps) {
-  const { map } = useMap();
+  // const { map } = useMap();
 
   return (
     <Marker

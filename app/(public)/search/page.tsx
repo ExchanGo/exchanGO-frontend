@@ -11,10 +11,11 @@ import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import mapboxgl from "mapbox-gl";
 
-// Add this interface near the top of the file
-interface MapContainer extends HTMLDivElement {
-  __mbMap?: any;
+// Add this interface if not importing from the provider file
+interface MapboxHTMLElement extends HTMLDivElement {
+  __mbMap?: mapboxgl.Map;
 }
 
 // Dynamically import modal container with SSR disabled
@@ -29,7 +30,7 @@ export default function Search() {
 
   // Remove the key state that was forcing map re-renders
   const [navbarHeight, setNavbarHeight] = useState(0);
-  const mapContainerRef = useRef<MapContainer | null>(null);
+  const mapContainerRef = useRef<MapboxHTMLElement | null>(null);
   const mapInitialized = useRef<boolean>(false);
 
   // Effect to measure navbar height on mount and resize

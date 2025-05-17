@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useMap } from "@/context/map-context";
+// import { useMap } from "@/context/map-context";
 
 // Water color constants
 // const WATER_COLOR = "#4FB9E5"; // Bright blue water color
