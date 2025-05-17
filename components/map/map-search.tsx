@@ -125,6 +125,14 @@ export default function MapSearch() {
     setSelectedLocations([]);
   };
 
+  // Check if location is selected
+  const isLocationSelected = (location: LocationFeature) => {
+    if (!selectedLocation) return false;
+    return (
+      location.properties.mapbox_id === selectedLocation.properties.mapbox_id
+    );
+  };
+
   return (
     <>
       <section className="absolute top-4 left-1/2 sm:left-4 z-10 w-[90vw] sm:w-[350px] -translate-x-1/2 sm:translate-x-0 rounded-lg shadow-lg">
@@ -202,6 +210,7 @@ export default function MapSearch() {
           key={location.properties.mapbox_id}
           location={location}
           onHover={(data) => setSelectedLocation(data)}
+          isSelected={isLocationSelected(location)}
         />
       ))}
 

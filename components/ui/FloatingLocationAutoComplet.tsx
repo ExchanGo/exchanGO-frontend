@@ -216,7 +216,7 @@ export function FloatingLocationAutoComplete({
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="absolute top-full left-0 w-max mt-1 z-50 rounded-lg bg-white shadow-md overflow-hidden border-1 border-[var(--color-lite)]"
+            className="absolute top-full left-0 w-max mt-1 z-50 rounded-lg bg-white shadow-md overflow-hidden"
           >
             <div className="p-2 border-b flex items-center gap-2">
               <Search className="h-4 w-4 text-[var(--color-greeny)]" />

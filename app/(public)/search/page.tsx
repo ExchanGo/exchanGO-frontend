@@ -12,6 +12,11 @@ import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
+// Add this interface near the top of the file
+interface MapContainer extends HTMLDivElement {
+  __mbMap?: any;
+}
+
 // Dynamically import modal container with SSR disabled
 const ModalContainerSearch = dynamic(
   () => import("@/components/shared/modal-container-search"),
@@ -21,16 +26,14 @@ const ModalContainerSearch = dynamic(
 export default function Search() {
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
   const setMapMaximized = useMapStore((state) => state.setMapMaximized);
-  const [key, setKey] = useState(0);
 
-  // Reference to the navbar to measure its height
+  // Remove the key state that was forcing map re-renders
   const [navbarHeight, setNavbarHeight] = useState(0);
-
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapContainerRef = useRef<MapContainer | null>(null);
+  const mapInitialized = useRef<boolean>(false);
 
   // Effect to measure navbar height on mount and resize
   useEffect(() => {
-    // This will only run in the browser
     if (typeof window === "undefined") return;
 
     const updateNavbarHeight = () => {
@@ -54,29 +57,27 @@ export default function Search() {
     setMapMaximized(false);
   }, [setMapMaximized]);
 
-  // Effect to force map re-render when maximized state changes or when controls are used
+  // Effect to handle map resize when the container dimensions change
   useEffect(() => {
-    // This will only run in the browser
-    if (typeof window === "undefined") return;
+    if (!mapContainerRef.current || typeof window === "undefined") return;
 
-    const handleControlInteraction = () => {
-      setKey((prev) => prev + 1);
+    // When map container size changes, trigger a resize event for Mapbox
+    const resizeMap = () => {
+      // Safely access the map instance
+      const mapInstance =
+        mapContainerRef.current?.__mbMap || (window as any).mapboxgl?.map;
+      if (mapInstance && typeof mapInstance.resize === "function") {
+        mapInstance.resize();
+      }
     };
 
-    window.addEventListener("mapControlInteraction", handleControlInteraction);
+    // Wait a tiny bit for the DOM to update before resizing
+    const timeoutId = setTimeout(() => {
+      resizeMap();
+    }, 50);
 
-    return () => {
-      window.removeEventListener(
-        "mapControlInteraction",
-        handleControlInteraction
-      );
-    };
-  }, []);
-
-  // Effect to force map re-render when maximized state changes
-  useEffect(() => {
-    setKey((prev) => prev + 1);
-  }, [isMapMaximized]);
+    return () => clearTimeout(timeoutId);
+  }, [isMapMaximized, navbarHeight]);
 
   return (
     <>
@@ -110,7 +111,7 @@ export default function Search() {
         >
           <div
             className={cn(
-              "sticky w-full max-md:relative max-md:h-[300px]",
+              "sticky w-full max-md:relative max-md:h-[300px] transition-all duration-300",
               isMapMaximized && "relative left-0 z-50"
             )}
             style={{
@@ -127,8 +128,7 @@ export default function Search() {
             }}
           >
             <div
-              key={key}
-              className="w-full h-full"
+              className="w-full h-full transition-all duration-300"
               style={{
                 height: !isMapMaximized
                   ? navbarHeight > 0
@@ -143,13 +143,16 @@ export default function Search() {
                 className="absolute inset-0 h-full w-full"
               />
 
+              {/* Only render the MapProvider once and keep it alive */}
               <MapProvider
-                key={key}
                 mapContainerRef={mapContainerRef}
                 initialViewState={{
                   longitude: -122.4194,
                   latitude: 37.7749,
                   zoom: 10,
+                }}
+                onLoad={() => {
+                  mapInitialized.current = true;
                 }}
               >
                 <MapSearch />

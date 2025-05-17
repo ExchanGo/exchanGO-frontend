@@ -29,18 +29,8 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
       currency: "USD",
     });
   };
-  const handleShareClick = () => {
-    openModal("MODAL_SHARE_EXCHANGE", {
-      exchangeId: "123",
-      exchangeData: {
-        name: "DirhamX",
-        location: "Rabat, Morocco",
-        rate: "Rp 16450",
-        lastUpdate: "16 April 2025",
-        image: "/img/dirham-alert.png",
-        link: "https://www.exchangego24.com/tdjs...",
-      },
-    });
+  const handleAlertClick = () => {
+    openModal("MODAL_WHATSAPP_ALERT");
   };
 
   // Use global filter state
@@ -152,7 +142,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
 
           <Button
             variant="outline"
-            onClick={handleShareClick}
+            onClick={handleAlertClick}
             size="xl"
             className="flex gap-2.5 items-center self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px]"
           >

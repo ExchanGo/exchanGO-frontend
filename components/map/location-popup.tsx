@@ -55,7 +55,7 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
       latitude={lat}
       longitude={lng}
       onClose={onClose}
-      offset={15}
+      offset={28}
       closeButton={true}
       closeOnClick={false}
       className="location-popup"
