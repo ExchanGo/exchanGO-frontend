@@ -11,7 +11,7 @@ import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
-import mapboxgl from "mapbox-gl";
+// import mapboxgl from "mapbox-gl";
 
 // Add this interface if not importing from the provider file
 interface MapboxHTMLElement extends HTMLDivElement {
