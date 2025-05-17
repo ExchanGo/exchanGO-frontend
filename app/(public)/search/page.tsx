@@ -11,13 +11,13 @@ import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
-// import mapboxgl from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 
 // Declare global window interface extension
 declare global {
   interface Window {
     mapboxgl?: {
-      map?: mapboxgl.Map;
+      map?: mapboxgl.Map | null;
     };
   }
 }
