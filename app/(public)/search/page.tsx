@@ -13,6 +13,15 @@ import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 // import mapboxgl from "mapbox-gl";
 
+// Declare global window interface extension
+declare global {
+  interface Window {
+    mapboxgl?: {
+      map?: mapboxgl.Map;
+    };
+  }
+}
+
 // Add this interface if not importing from the provider file
 interface MapboxHTMLElement extends HTMLDivElement {
   __mbMap?: mapboxgl.Map;
@@ -66,7 +75,7 @@ export default function Search() {
     const resizeMap = () => {
       // Safely access the map instance
       const mapInstance =
-        mapContainerRef.current?.__mbMap || (window as any).mapboxgl?.map;
+        mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
       if (mapInstance && typeof mapInstance.resize === "function") {
         mapInstance.resize();
       }
