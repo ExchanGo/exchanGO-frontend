@@ -12,6 +12,10 @@ interface FloatingLabelInputProps
   label?: string;
   placeholder?: string;
   icon?: LucideIcon;
+  type?: string;
+  defaultValue?: string;
+  value?: string;
+  onFocus?: () => void;
 }
 
 const FloatingLabelInput = React.forwardRef<
@@ -25,18 +29,43 @@ const FloatingLabelInput = React.forwardRef<
       label = "Label",
       placeholder = "Enter text",
       icon: Icon,
+      type = "text",
+      defaultValue = "",
+      value,
+      onFocus,
       ...props
     },
     ref
   ) => {
-    const [value, setValue] = React.useState("");
+    const [inputValue, setInputValue] = React.useState(
+      value || defaultValue || ""
+    );
     const [isHovered, setIsHovered] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
 
+    // Update input value when value or defaultValue props change
+    React.useEffect(() => {
+      if (value !== undefined) {
+        setInputValue(value);
+      } else if (defaultValue !== undefined) {
+        setInputValue(defaultValue);
+      }
+    }, [value, defaultValue]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      setValue(newValue);
+      setInputValue(newValue);
       onChange?.(newValue);
+    };
+
+    const handleFocus = () => {
+      setIsFocused(true);
+      onFocus?.();
+    };
+
+    const handleBlur = () => {
+      setIsFocused(false);
+      if (!inputValue) setInputValue("");
     };
 
     return (
@@ -96,14 +125,11 @@ const FloatingLabelInput = React.forwardRef<
             )}
           </AnimatePresence>
           <motion.input
-            type="text"
-            value={value}
+            type={type}
+            value={inputValue}
             onChange={handleChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => {
-              setIsFocused(false);
-              if (!value) setValue("");
-            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
