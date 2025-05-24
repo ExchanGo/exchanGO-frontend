@@ -37,6 +37,9 @@ export type LocationSuggestion = {
   name: string;
   place_formatted: string;
   maki?: string;
+  feature_type?: string;
+  address?: string;
+  full_address?: string;
 };
 
 export type LocationFeature = {

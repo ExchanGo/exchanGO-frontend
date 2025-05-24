@@ -236,23 +236,9 @@ function MapProviderContent({
   }, []);
 
   return (
-    <>
-      {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="flex flex-col items-center gap-4">
-            <Loader
-              text="Loading map..."
-              noOverlay
-              titleClassName="text-lg font-medium"
-              className="relative"
-            />
-          </div>
-        </div>
-      )}
-      <MapContext.Provider value={{ map: mapInstance.current! }}>
-        {children}
-      </MapContext.Provider>
-    </>
+    <MapContext.Provider value={{ map: mapInstance.current! }}>
+      {children}
+    </MapContext.Provider>
   );
 }
 

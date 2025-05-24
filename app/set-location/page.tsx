@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Check, Search, Info } from "lucide-react";
+import { MapPin, Check, Search, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthNavbar from "@/components/auth/AuthNavbar";
 import MapProvider from "@/lib/mapbox/provider";
@@ -98,7 +98,13 @@ function LocationSearch() {
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<LocationFeature | null>(null);
 
+  // Use a debounced search value to prevent too many API calls
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+
+  // Function to search for locations using Mapbox's modern searchbox API
   const searchLocation = async (query: string) => {
     if (!query.trim()) {
       setSuggestions([]);
@@ -109,39 +115,91 @@ function LocationSearch() {
     setError(null);
 
     try {
+      // Use Mapbox Search API with better proximity to Morocco
       const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      const sessionToken = Math.random().toString(36).substring(2, 15); // Generate a session token for grouped requests
+
+      // Use the search API with proximity set to Morocco
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
           query
-        )}.json?access_token=${accessToken}&types=address,poi,place&limit=5`
+        )}&access_token=${accessToken}&session_token=${sessionToken}&country=MA&limit=5&proximity=-7.092,31.792&language=fr,en`
       );
 
       if (!response.ok) throw new Error("Failed to fetch suggestions");
 
       const data = await response.json();
-      const features = data.features.map((feature: any) => ({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: feature.center,
-        },
-        properties: {
-          name: feature.text,
-          mapbox_id: feature.id,
-          feature_type: feature.place_type[0],
-          place_formatted: feature.place_name,
-          coordinates: {
-            longitude: feature.center[0],
-            latitude: feature.center[1],
+
+      if (!data.suggestions || data.suggestions.length === 0) {
+        // Fallback to traditional geocoding API if no results from searchbox
+        const geocodingResponse = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            query
+          )}.json?access_token=${accessToken}&country=ma&types=address,poi,place,locality,neighborhood&proximity=-7.092,31.792&limit=5`
+        );
+
+        if (!geocodingResponse.ok)
+          throw new Error("Failed to fetch suggestions");
+
+        const geocodingData = await geocodingResponse.json();
+
+        // Transform geocoding results to match our LocationFeature format
+        const features = geocodingData.features.map((feature: any) => ({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: feature.center,
           },
-        },
-      }));
+          properties: {
+            name: feature.text,
+            mapbox_id: feature.id,
+            feature_type: feature.place_type[0],
+            place_formatted: feature.place_name,
+            coordinates: {
+              longitude: feature.center[0],
+              latitude: feature.center[1],
+            },
+            maki: feature.properties?.category || "marker",
+          },
+        }));
 
-      setSuggestions(features);
+        setSuggestions(features);
 
-      // If no results found
-      if (features.length === 0 && isFocused) {
-        setError("No locations found. Try a different search term.");
+        // If no results found
+        if (features.length === 0 && isFocused) {
+          setError("No locations found. Try a different search term.");
+        }
+      } else {
+        // Process suggestions from searchbox API
+        // We need to retrieve full details for each suggestion to get coordinates
+        const suggestions = data.suggestions;
+
+        // Map the suggestions to a format compatible with our app
+        const features = suggestions.map((suggestion: any) => ({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0], // Placeholder, will be filled when selected
+          },
+          properties: {
+            name: suggestion.name,
+            mapbox_id: suggestion.mapbox_id,
+            feature_type: suggestion.feature_type || "place",
+            place_formatted:
+              suggestion.place_formatted ||
+              suggestion.full_address ||
+              suggestion.address ||
+              "",
+            coordinates: {
+              longitude: 0, // Placeholder
+              latitude: 0, // Placeholder
+            },
+            maki: suggestion.maki || "marker",
+            suggestion_data: suggestion, // Store the original suggestion for retrieval
+          },
+        }));
+
+        setSuggestions(features);
       }
     } catch (error) {
       console.error("Error searching for location:", error);
@@ -152,48 +210,112 @@ function LocationSearch() {
     }
   };
 
-  const selectLocation = (location: LocationFeature) => {
-    if (!map) return;
+  // Retrieve full details for a selected suggestion
+  const retrieveSuggestionDetails = async (suggestion: LocationFeature) => {
+    if (!suggestion.properties.mapbox_id) return suggestion;
 
-    map.flyTo({
-      center: [
-        location.properties.coordinates.longitude,
-        location.properties.coordinates.latitude,
-      ],
-      zoom: 16,
-      essential: true,
-      duration: 1000,
-    });
+    try {
+      const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      const sessionToken = Math.random().toString(36).substring(2, 15);
 
-    setSearchValue(
-      location.properties.place_formatted || location.properties.name
-    );
-    setSuggestions([]);
-    setIsFocused(false);
+      const response = await fetch(
+        `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestion.properties.mapbox_id}?access_token=${accessToken}&session_token=${sessionToken}`
+      );
+
+      if (!response.ok) return suggestion;
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+
+        // Update the suggestion with actual coordinates
+        return {
+          ...suggestion,
+          geometry: feature.geometry,
+          properties: {
+            ...suggestion.properties,
+            coordinates: {
+              longitude: feature.geometry.coordinates[0],
+              latitude: feature.geometry.coordinates[1],
+            },
+          },
+        };
+      }
+
+      return suggestion;
+    } catch (error) {
+      console.error("Error retrieving location details:", error);
+      return suggestion;
+    }
   };
 
-  // Debounce search to avoid too many API calls
+  const selectLocation = async (location: LocationFeature) => {
+    if (!map) return;
+
+    setIsLoading(true);
+
+    try {
+      // If the location needs to be retrieved (from searchbox API)
+      if (
+        location.geometry.coordinates[0] === 0 &&
+        location.geometry.coordinates[1] === 0
+      ) {
+        const fullLocation = await retrieveSuggestionDetails(location);
+        location = fullLocation;
+      }
+
+      const coordinates = [
+        location.properties.coordinates.longitude,
+        location.properties.coordinates.latitude,
+      ] as [number, number];
+
+      map.flyTo({
+        center: coordinates,
+        zoom: 16,
+        essential: true,
+        duration: 1000,
+        pitch: 40, // Add some pitch for a better view
+        bearing: 0,
+      });
+
+      setSearchValue(
+        location.properties.place_formatted || location.properties.name
+      );
+      setSelectedLocation(location);
+      setSuggestions([]);
+      setIsFocused(false);
+
+      // Add a function to center the marker at the selected location
+      // This assumes that MapMarker component listens to the map's center
+    } catch (error) {
+      console.error("Error selecting location:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Use debounce hook to delay API calls while typing
   useEffect(() => {
-    if (!searchValue.trim()) {
+    if (!debouncedSearchValue.trim()) {
       setSuggestions([]);
       setError(null);
       return;
     }
 
-    const timer = setTimeout(() => {
-      searchLocation(searchValue);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchValue]);
+    searchLocation(debouncedSearchValue);
+  }, [debouncedSearchValue]);
 
   const handleInputChange = (value: string) => {
-    console.log("Search input changed:", value);
     setSearchValue(value);
+
+    // If the user clears the input, reset everything
+    if (!value.trim()) {
+      setSelectedLocation(null);
+    }
   };
 
   const handleInputFocus = () => {
-    console.log("Search input focused");
     setIsFocused(true);
     // If we already have a search value, trigger search again
     if (searchValue.trim()) {
@@ -202,8 +324,17 @@ function LocationSearch() {
   };
 
   const handleOutsideClick = () => {
-    // Hide suggestions dropdown when clicking outside
-    setIsFocused(false);
+    // Don't hide dropdown immediately to allow clicking on suggestions
+    setTimeout(() => {
+      setIsFocused(false);
+    }, 200);
+  };
+
+  const clearSearch = () => {
+    setSearchValue("");
+    setSuggestions([]);
+    setSelectedLocation(null);
+    setError(null);
   };
 
   // Add effect to handle outside clicks
@@ -214,16 +345,42 @@ function LocationSearch() {
     };
   }, []);
 
+  // Helper function to highlight matched text in suggestions
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    try {
+      const regex = new RegExp(`(${query.trim()})`, "gi");
+      return text.replace(
+        regex,
+        '<mark class="bg-green-100 text-green-800 px-0.5 rounded">$1</mark>'
+      );
+    } catch (e) {
+      return text;
+    }
+  };
+
   return (
     <div className="relative z-50 w-full">
-      <FloatingLabelInput
-        icon={Search}
-        label="Office Location"
-        value={searchValue}
-        onChange={handleInputChange}
-        onFocus={handleInputFocus}
-        placeholder="Search for your office location"
-      />
+      <div className="flex items-center relative">
+        <FloatingLabelInput
+          icon={Search}
+          label="Office Location"
+          value={searchValue}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          placeholder="Search for your office location in Morocco"
+        />
+
+        {searchValue && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-4 top-1/2 -mt-2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       <AnimatePresence>
         {isFocused && (isLoading || error || suggestions.length > 0) && (
@@ -258,7 +415,7 @@ function LocationSearch() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  <span>Searching...</span>
+                  <span>Searching locations in Morocco...</span>
                 </div>
               </div>
             ) : error ? (
@@ -266,36 +423,111 @@ function LocationSearch() {
                 {error}
               </div>
             ) : suggestions.length > 0 ? (
-              suggestions.map((suggestion) => (
-                <motion.div
-                  key={suggestion.properties.mapbox_id}
-                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  onClick={() => selectLocation(suggestion)}
-                  whileHover={{ backgroundColor: "rgba(74, 175, 87, 0.1)" }}
-                >
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">
-                        {suggestion.properties.name}
+              <div className="divide-y divide-gray-100">
+                {suggestions.map((suggestion) => (
+                  <motion.div
+                    key={suggestion.properties.mapbox_id}
+                    className="p-3 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => selectLocation(suggestion)}
+                    whileHover={{ backgroundColor: "rgba(74, 175, 87, 0.1)" }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 bg-green-50 p-1.5 rounded-full flex-shrink-0">
+                        <MapPin className="h-4 w-4 text-green-600" />
                       </div>
-                      <div className="text-sm text-gray-500 truncate max-w-[90%]">
-                        {suggestion.properties.place_formatted}
+                      <div>
+                        <div
+                          className="font-medium"
+                          dangerouslySetInnerHTML={{
+                            __html: highlightMatch(
+                              suggestion.properties.name,
+                              searchValue
+                            ),
+                          }}
+                        />
+                        {suggestion.properties.place_formatted && (
+                          <div
+                            className="text-sm text-gray-500 truncate max-w-[90%]"
+                            dangerouslySetInnerHTML={{
+                              __html: highlightMatch(
+                                suggestion.properties.place_formatted,
+                                searchValue
+                              ),
+                            }}
+                          />
+                        )}
+                        <div className="text-xs text-gray-400 mt-1">
+                          {suggestion.properties.feature_type === "address"
+                            ? "Address"
+                            : suggestion.properties.feature_type === "poi"
+                            ? "Point of Interest"
+                            : suggestion.properties.feature_type === "place"
+                            ? "Place"
+                            : suggestion.properties.feature_type}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))
+                  </motion.div>
+                ))}
+              </div>
             ) : (
-              <div className="p-3 text-center text-gray-500">
-                Type to search for locations
+              <div className="p-4 text-center text-gray-500">
+                <div className="flex flex-col items-center gap-2">
+                  <MapPin className="h-8 w-8 text-gray-300" />
+                  <div>
+                    <p className="text-sm font-medium">
+                      Search for your office location
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Type an address, neighborhood, city, or point of interest
+                      in Morocco
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {selectedLocation && (
+        <div className="mt-3 p-3 bg-green-50 border border-green-100 rounded-md">
+          <div className="flex items-start gap-2">
+            <MapPin className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <div className="font-medium text-green-800">
+                {selectedLocation.properties.name}
+              </div>
+              <div className="text-sm text-green-700">
+                {selectedLocation.properties.place_formatted}
+              </div>
+              <div className="text-xs text-green-600 mt-1">
+                {selectedLocation.properties.coordinates.latitude.toFixed(6)},{" "}
+                {selectedLocation.properties.coordinates.longitude.toFixed(6)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+// Add a debounce hook if not already present in the codebase
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
 // Main map-related components wrapper that puts everything in a single MapProvider

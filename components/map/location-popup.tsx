@@ -61,7 +61,7 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
       className="location-popup"
       focusAfterOpen={false}
     >
-      <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border border-solid border-neutral-200 min-w-60 w-[221px]">
+      <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border min-w-60 w-[221px]">
         <div className="overflow-hidden w-full text-xs font-medium leading-tight text-neutral-900">
           <div className="flex relative flex-col px-3 py-3.5 w-full aspect-[2.3]">
             <img

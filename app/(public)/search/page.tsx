@@ -11,7 +11,7 @@ import MapStyles from "@/components/map/map-styles";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
-import mapboxgl from "mapbox-gl";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Declare global window interface extension
 declare global {
@@ -41,10 +41,38 @@ export default function Search() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const mapContainerRef = useRef<MapboxHTMLElement | null>(null);
   const mapInitialized = useRef<boolean>(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Add prefetching state to improve perceived performance
+  const [isMapPrefetched, setIsMapPrefetched] = useState(false);
 
   // Effect to measure navbar height on mount and resize
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Prefetch the map resources to improve load time
+    const prefetchMapResources = async () => {
+      // Prefetch mapbox GL stylesheet
+      const linkElement = document.createElement("link");
+      linkElement.rel = "preload";
+      linkElement.as = "style";
+      linkElement.href =
+        "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
+      document.head.appendChild(linkElement);
+
+      // Prefetch initial terrain data
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/styles/v1/mapbox/light-v11?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
+        );
+        if (response.ok) {
+          await response.json(); // This will cache the response
+          setIsMapPrefetched(true);
+        }
+      } catch (error) {
+        console.error("Failed to prefetch map resources:", error);
+      }
+    };
 
     const updateNavbarHeight = () => {
       const navbar = document.querySelector("nav");
@@ -55,6 +83,7 @@ export default function Search() {
     };
 
     updateNavbarHeight();
+    prefetchMapResources();
     window.addEventListener("resize", updateNavbarHeight);
 
     return () => {
@@ -89,37 +118,82 @@ export default function Search() {
     return () => clearTimeout(timeoutId);
   }, [isMapMaximized, navbarHeight]);
 
+  // Handle map load and initialization
+  const handleMapLoad = () => {
+    mapInitialized.current = true;
+
+    // Delay showing map as loaded to allow for initialization
+    setTimeout(() => {
+      setMapLoaded(true);
+    }, 400); // Small delay for smoother transition
+
+    // Apply any additional map initialization
+    const mapInstance =
+      mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
+    if (mapInstance) {
+      // Enable terrain if available
+      if (mapInstance.getStyle().layers) {
+        mapInstance.setFog({
+          color: "rgb(220, 230, 240)", // Light blue-ish fog
+          "high-color": "rgb(245, 250, 255)", // Light color at upper atmosphere
+          "horizon-blend": 0.1, // Lower atmosphere haze
+          "space-color": "rgb(220, 230, 240)", // Dark blue/purple upper atmosphere
+          "star-intensity": 0.2, // Dim stars
+        });
+
+        // Add enhanced performance settings
+        mapInstance.setRenderWorldCopies(false); // Disable world copies for better performance
+        mapInstance.setMaxZoom(16); // Limit zoom to prevent excessive tile loading
+      }
+
+      // Enhance map interaction - but keep them lightweight for performance
+      mapInstance.dragRotate.enable();
+      mapInstance.touchZoomRotate.enableRotation();
+
+      // Optimize for performance
+      mapInstance.setTerrain(null); // Disable terrain for better performance
+      mapInstance.setPitch(0); // Start with flat view for faster rendering
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-12 max-md:grid-cols-1">
         {/* Left Section - Results */}
-        <section
-          className={cn(
-            "col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0",
-            isMapMaximized && "hidden"
+        <AnimatePresence>
+          {!isMapMaximized && (
+            <motion.section
+              className="col-span-8 max-md:col-span-1 min-h-screen border-r border-neutral-200 max-md:border-r-0"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SearchFilters />
+              <div className="mx-8 mt-6">
+                <ResultsHeader
+                  count={8}
+                  location="Morocco"
+                  lastUpdate="Just now"
+                />
+                <div className="pb-10">
+                  <ResultsList />
+                </div>
+              </div>
+            </motion.section>
           )}
-        >
-          <SearchFilters />
-          <div className="mx-8 mt-6">
-            <ResultsHeader
-              count={8}
-              location="Central Park"
-              lastUpdate="3 days Ago"
-            />
-            <div className="pb-10">
-              <ResultsList />
-            </div>
-          </div>
-        </section>
+        </AnimatePresence>
 
         {/* Right Section - Map */}
-        <section
+        <motion.section
           className={cn(
             "col-span-4 max-md:col-span-1 block",
             isMapMaximized && "col-span-12"
           )}
+          layout
+          transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <div
+          <motion.div
             className={cn(
               "sticky w-full max-md:relative max-md:h-[300px] transition-all duration-300",
               isMapMaximized && "fixed inset-x-0 z-50 !top-[125px]"
@@ -136,11 +210,12 @@ export default function Search() {
                   : "calc(100vh - 125px)"
                 : "calc(100vh - 125px)",
             }}
+            layout
           >
-            <div
+            <motion.div
               className={cn(
-                "w-full h-full transition-all duration-300",
-                isMapMaximized && "overflow-hidden"
+                "w-full h-full transition-all duration-300 overflow-hidden shadow-l-lg",
+                isMapMaximized && "rounded-lg overflow-hidden"
               )}
               style={{
                 height: !isMapMaximized
@@ -149,7 +224,39 @@ export default function Search() {
                     : "calc(100vh - 125px)"
                   : "100vh",
               }}
+              layout
             >
+              {/* Map placeholder for faster initial rendering */}
+              {!isMapPrefetched && (
+                <div className="absolute inset-0 z-40 bg-gray-100 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-t-green-500 border-gray-200 animate-spin"></div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Preparing map resources...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Map loading overlay */}
+              <AnimatePresence>
+                {!mapLoaded && (
+                  <motion.div
+                    className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center"
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-full border-4 border-t-[#79DD1C] border-gray-200 animate-spin"></div>
+                      <p className="text-sm font-medium text-gray-600">
+                        Loading map...
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div
                 id="map-container"
                 ref={mapContainerRef}
@@ -160,21 +267,19 @@ export default function Search() {
               <MapProvider
                 mapContainerRef={mapContainerRef}
                 initialViewState={{
-                  longitude: -122.4194,
-                  latitude: 37.7749,
-                  zoom: 10,
+                  longitude: -7.092, // Default to Morocco
+                  latitude: 31.792,
+                  zoom: 5.5,
                 }}
-                onLoad={() => {
-                  mapInitialized.current = true;
-                }}
+                onLoad={handleMapLoad}
               >
                 <MapSearch />
                 <MapCotrols />
                 <MapStyles />
               </MapProvider>
-            </div>
-          </div>
-        </section>
+            </motion.div>
+          </motion.div>
+        </motion.section>
       </div>
 
       {/* Modal Container - Rendered at root level */}

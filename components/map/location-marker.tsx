@@ -37,7 +37,7 @@ export function LocationMarker({
         className="flex flex-col items-center mb-2"
       >
         <div
-          className={`rounded-md px-1 shadow-lg font-medium relative z-10 border border-gray-100 ${
+          className={`rounded-md px-1 shadow-lg font-medium relative z-10 transition-all duration-200 ${
             isSelected ? "bg-[#111111] text-white" : "bg-white text-black"
           }`}
         >
