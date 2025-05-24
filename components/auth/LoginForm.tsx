@@ -146,7 +146,7 @@ export default function LoginForm() {
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="rounded border-gray-300 text-green-500 focus:ring-green-500"
+            className="rounded border-gray-300 w-4 h-4 text-green-500 focus:ring-green-500  accent-[var(--color-greeny)]"
             checked={formData.termsAccepted}
             onChange={(e) => updateFormData("termsAccepted", e.target.checked)}
           />
@@ -155,7 +155,7 @@ export default function LoginForm() {
           </span>
           <Link
             href="/terms"
-            className="text-sm text-green-600 hover:underline"
+            className="text-sm text-[var(--color-greeny)] hover:underline font-semibold"
           >
             Terms & Conditions
           </Link>
@@ -222,12 +222,6 @@ export default function LoginForm() {
           "Create my exchange office account"
         )}
       </Button>
-
-      <div className="text-center">
-        <Link href="/login" className="text-sm text-green-600 hover:underline">
-          Already have an account? Sign in
-        </Link>
-      </div>
     </form>
   );
 }

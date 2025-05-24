@@ -306,7 +306,7 @@ export default function OfficeInformationForm() {
         </motion.div>
         <motion.button
           type="button"
-          className="mt-4 px-6 py-2 text-sm border border-[#4AAF57] text-[#4AAF57] rounded-md flex items-center gap-2 font-medium"
+          className="mt-4 px-6 py-2 text-sm border border-[var(--color-greeny)] text-[var(--color-greeny)] rounded-md flex items-center gap-2 font-medium"
           onClick={() => fileInputRef.current?.click()}
           whileHover={{ backgroundColor: "rgba(74, 175, 87, 0.05)" }}
           transition={{ duration: 0.2 }}
@@ -514,7 +514,7 @@ export default function OfficeInformationForm() {
             type="button"
             className={`w-5 h-5 rounded flex items-center justify-center ${
               formData.isWhatsApp
-                ? "bg-green-500 border-green-500"
+                ? "bg-[var(--color-greeny)] border-[var(--color-greeny)]"
                 : "border border-gray-300"
             }`}
             onClick={toggleWhatsApp}
@@ -584,7 +584,7 @@ export default function OfficeInformationForm() {
         {!showOtherNumber && (
           <motion.button
             type="button"
-            className="flex items-center gap-2 text-green-500 cursor-pointer hover:text-green-600"
+            className="flex items-center gap-2 text-[var(--color-greeny)] cursor-pointer hover:text-[var(--color-greeny-bold)]"
             onClick={() => setShowOtherNumber(true)}
             whileHover={{ x: 3 }}
             transition={{ duration: 0.2 }}

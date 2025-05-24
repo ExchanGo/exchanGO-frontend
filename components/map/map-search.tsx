@@ -572,7 +572,7 @@ export default function MapSearch() {
                 value={displayValue}
                 onValueChange={handleInputChange}
                 onFocus={handleInputFocus}
-                className="flex-1 w-full"
+                className="flex-1 w-full font-dm"
               />
               {displayValue && !isSearching && (
                 <X
@@ -598,7 +598,7 @@ export default function MapSearch() {
                       <div className="py-6 text-center">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground font-dm">
                             Searching...
                           </p>
                         </div>
@@ -606,10 +606,10 @@ export default function MapSearch() {
                     ) : errorMessage ? (
                       <CommandEmpty className="py-6 text-center">
                         <div className="flex flex-col items-center justify-center space-y-1">
-                          <p className="text-sm font-medium text-foreground">
+                          <p className="text-sm font-medium text-foreground font-dm">
                             {errorMessage}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground font-dm">
                             Try a different search term or be more specific
                           </p>
                         </div>
@@ -629,7 +629,7 @@ export default function MapSearch() {
                               </div>
                               <div className="flex flex-col flex-1 min-w-0">
                                 <span
-                                  className="text-sm font-medium truncate max-w-full"
+                                  className="text-sm font-medium truncate max-w-full font-dm"
                                   dangerouslySetInnerHTML={{
                                     __html: highlightMatch(
                                       location.name,
@@ -639,7 +639,7 @@ export default function MapSearch() {
                                 />
                                 {location.place_formatted && (
                                   <span
-                                    className="text-xs text-muted-foreground truncate max-w-full"
+                                    className="text-xs text-muted-foreground truncate max-w-full font-dm"
                                     dangerouslySetInnerHTML={{
                                       __html: highlightMatch(
                                         location.place_formatted,
@@ -648,7 +648,7 @@ export default function MapSearch() {
                                     }}
                                   />
                                 )}
-                                <span className="text-xs text-muted-foreground/70 mt-0.5">
+                                <span className="text-xs text-muted-foreground/70 mt-0.5 font-dm">
                                   {location.feature_type === "address"
                                     ? "Address"
                                     : location.feature_type === "poi"
@@ -676,11 +676,11 @@ export default function MapSearch() {
                                 <Navigation className="h-4 w-4 text-gray-500" />
                               </div>
                               <div className="flex flex-col flex-1 min-w-0">
-                                <span className="text-sm font-medium truncate max-w-full">
+                                <span className="text-sm font-medium truncate max-w-full font-dm">
                                   {location.name}
                                 </span>
                                 {location.place_formatted && (
-                                  <span className="text-xs text-muted-foreground truncate max-w-full">
+                                  <span className="text-xs text-muted-foreground truncate max-w-full font-dm">
                                     {location.place_formatted}
                                   </span>
                                 )}
@@ -694,10 +694,10 @@ export default function MapSearch() {
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <MapIcon className="h-8 w-8 text-muted-foreground/50" />
                           <div>
-                            <p className="text-sm font-medium text-foreground">
+                            <p className="text-sm font-medium text-foreground font-dm">
                               Search for a location
                             </p>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1 font-dm">
                               Enter an address, landmark, or area
                             </p>
                           </div>

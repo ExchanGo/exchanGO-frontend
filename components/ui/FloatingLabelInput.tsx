@@ -60,10 +60,22 @@ const FloatingLabelInput = React.forwardRef<
 
     const handleFocus = () => {
       setIsFocused(true);
-      onFocus?.();
+      setTimeout(() => {
+        onFocus?.();
+      }, 10);
     };
 
-    const handleBlur = () => {
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (
+        e.relatedTarget &&
+        ref &&
+        typeof ref !== "function" &&
+        ref.current &&
+        ref.current.contains(e.relatedTarget as Node)
+      ) {
+        return;
+      }
+
       setIsFocused(false);
       if (!inputValue) setInputValue("");
     };

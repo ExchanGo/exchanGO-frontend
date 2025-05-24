@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const TryNowSection = () => {
   return (
@@ -17,8 +18,11 @@ const TryNowSection = () => {
             Don&apos;t waste time and money on bad exchange rates. Use
             ExchangeGo24 and get the best deals with ease.
           </p>
-          <Button className="bg-[#3bee5c] hover:bg-[#3bee5c]/90 text-exchange-dark font-semibold font-dm px-8 py-4 text-base h-12">
-            Find the best rate
+          <Button
+            asChild
+            className="bg-[#3bee5c] hover:bg-[#3bee5c]/90 text-exchange-dark font-semibold font-dm px-8 py-4 text-base h-12"
+          >
+            <Link href="/login">Find the best rate</Link>
           </Button>
         </div>
       </div>

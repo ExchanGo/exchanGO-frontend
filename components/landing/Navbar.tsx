@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   return (
@@ -41,9 +41,10 @@ export default function Navbar() {
       <Button
         variant="outline"
         size="xl"
+        asChild
         className="border-[var(--color-neon)] text-[var(--color-neon)] mt-2 hover:bg-[var(--color-neon)]/10 hover:border-[var(--color-neon)] hover:scale-[1.02] transition-all duration-300 hover:shadow-[0_0_20px_rgba(60,238,92,0.3)] active:scale-[0.98]"
       >
-        Exchange office Space
+        <Link href="/login">Exchange office Space</Link>
       </Button>
     </nav>
   );

@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Check, Search, Info, X } from "lucide-react";
+import {
+  MapPin,
+  Check,
+  Search,
+  Info,
+  X,
+  MinusIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthNavbar from "@/components/auth/AuthNavbar";
 import MapProvider from "@/lib/mapbox/provider";
@@ -12,6 +20,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { LocationFeature } from "@/lib/mapbox/utils";
 import { FloatingLabelInput } from "@/components/ui/FloatingLabelInput";
+import { Separator } from "@radix-ui/react-select";
 
 // Define MapboxHTMLElement interface
 interface MapboxHTMLElement extends HTMLDivElement {
@@ -100,14 +109,233 @@ function LocationSearch() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] =
     useState<LocationFeature | null>(null);
+  const [shouldCloseDropdown, setShouldCloseDropdown] = useState(true);
+  const inputRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use a debounced search value to prevent too many API calls
-  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedSearchValue = useDebounce(searchValue, 200); // Reduced debounce time for better responsiveness
+
+  // Preloaded major cities in Morocco for instant suggestions
+  const preloadedMoroccoCities = [
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-7.5898, 33.5731],
+      },
+      properties: {
+        name: "Casablanca",
+        mapbox_id: "place.casablanca",
+        feature_type: "place",
+        place_formatted: "Casablanca, Morocco",
+        coordinates: {
+          longitude: -7.5898,
+          latitude: 33.5731,
+        },
+        maki: "marker",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-6.8498, 33.9716],
+      },
+      properties: {
+        name: "Rabat",
+        mapbox_id: "place.rabat",
+        feature_type: "place",
+        place_formatted: "Rabat, Morocco",
+        coordinates: {
+          longitude: -6.8498,
+          latitude: 33.9716,
+        },
+        maki: "marker",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-8.0083, 31.6295],
+      },
+      properties: {
+        name: "Marrakech",
+        mapbox_id: "place.marrakech",
+        feature_type: "place",
+        place_formatted: "Marrakech, Morocco",
+        coordinates: {
+          longitude: -8.0083,
+          latitude: 31.6295,
+        },
+        maki: "marker",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-5.0078, 34.0331],
+      },
+      properties: {
+        name: "Fes",
+        mapbox_id: "place.fes",
+        feature_type: "place",
+        place_formatted: "Fes, Morocco",
+        coordinates: {
+          longitude: -5.0078,
+          latitude: 34.0331,
+        },
+        maki: "marker",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-5.8128, 35.7595],
+      },
+      properties: {
+        name: "Tangier",
+        mapbox_id: "place.tangier",
+        feature_type: "place",
+        place_formatted: "Tangier, Morocco",
+        coordinates: {
+          longitude: -5.8128,
+          latitude: 35.7595,
+        },
+        maki: "marker",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-9.5981, 30.4278],
+      },
+      properties: {
+        name: "Agadir",
+        mapbox_id: "place.agadir",
+        feature_type: "place",
+        place_formatted: "Agadir, Morocco",
+        coordinates: {
+          longitude: -9.5981,
+          latitude: 30.4278,
+        },
+        maki: "marker",
+      },
+    },
+  ] as LocationFeature[];
+
+  // Use geolocation to get user's current location
+  const getUserLocation = () => {
+    if (!map) return;
+
+    // Check if user is logged in
+    const userLoggedIn = false; // Replace with actual authentication check
+
+    if (!userLoggedIn) {
+      // Redirect to login page if not logged in
+      window.location.href = "/login";
+      return;
+    }
+
+    setIsLoading(true);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { longitude, latitude } = position.coords;
+
+          map.flyTo({
+            center: [longitude, latitude],
+            zoom: 16,
+            essential: true,
+            duration: 1000,
+            pitch: 40,
+            bearing: 0,
+          });
+
+          try {
+            // Perform reverse geocoding
+            const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+            // Use Mapbox Geocoding API for reverse geocoding
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}&language=fr,en&types=address,place,locality,neighborhood,poi`
+            );
+
+            if (!response.ok)
+              throw new Error("Failed to get address for location");
+
+            const data = await response.json();
+
+            if (data.features && data.features.length > 0) {
+              const feature = data.features[0];
+
+              // Create a location feature from the reverse geocoding result
+              const locationFeature: LocationFeature = {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [longitude, latitude],
+                },
+                properties: {
+                  name: feature.text || "Current Location",
+                  mapbox_id: feature.id || "current_location",
+                  feature_type: feature.place_type?.[0] || "address",
+                  place_formatted:
+                    feature.place_name ||
+                    `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+                  coordinates: {
+                    longitude,
+                    latitude,
+                  },
+                  context: {} as any, // Using type assertion to satisfy TypeScript
+                  maki: "marker",
+                },
+              };
+
+              // Update search value and selected location
+              setSearchValue(feature.place_name || "Current Location");
+              setSelectedLocation(locationFeature);
+            }
+          } catch (error) {
+            console.error("Error reverse geocoding:", error);
+            // If reverse geocoding fails, just use coordinates
+            setSearchValue(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          } finally {
+            setIsLoading(false);
+            setSuggestions([]);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setIsLoading(false);
+
+          // Show error message to user
+          alert(
+            "Could not get your location. Please make sure location services are enabled."
+          );
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+      setIsLoading(false);
+    }
+  };
 
   // Function to search for locations using Mapbox's modern searchbox API
   const searchLocation = async (query: string) => {
     if (!query.trim()) {
-      setSuggestions([]);
+      // Show preloaded cities when search is empty for quick selection
+      setSuggestions(preloadedMoroccoCities);
       return;
     }
 
@@ -115,6 +343,22 @@ function LocationSearch() {
     setError(null);
 
     try {
+      // First check if the query matches any preloaded city for instant results
+      const matchingPreloadedCities = preloadedMoroccoCities.filter(
+        (city) =>
+          city.properties.name.toLowerCase().includes(query.toLowerCase()) ||
+          (city.properties.place_formatted &&
+            city.properties.place_formatted
+              .toLowerCase()
+              .includes(query.toLowerCase()))
+      );
+
+      if (matchingPreloadedCities.length > 0) {
+        setSuggestions(matchingPreloadedCities);
+        setIsLoading(false);
+        return;
+      }
+
       // Use Mapbox Search API with better proximity to Morocco
       const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
       const sessionToken = Math.random().toString(36).substring(2, 15); // Generate a session token for grouped requests
@@ -204,7 +448,7 @@ function LocationSearch() {
     } catch (error) {
       console.error("Error searching for location:", error);
       setError("Failed to search for locations. Please try again.");
-      setSuggestions([]);
+      setSuggestions(preloadedMoroccoCities.slice(0, 3)); // Show some preloaded cities as fallback
     } finally {
       setIsLoading(false);
     }
@@ -213,6 +457,15 @@ function LocationSearch() {
   // Retrieve full details for a selected suggestion
   const retrieveSuggestionDetails = async (suggestion: LocationFeature) => {
     if (!suggestion.properties.mapbox_id) return suggestion;
+
+    // For preloaded cities, we already have all the details
+    if (
+      suggestion.properties.mapbox_id.startsWith("place.") &&
+      suggestion.geometry.coordinates[0] !== 0 &&
+      suggestion.geometry.coordinates[1] !== 0
+    ) {
+      return suggestion;
+    }
 
     try {
       const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -285,9 +538,6 @@ function LocationSearch() {
       setSelectedLocation(location);
       setSuggestions([]);
       setIsFocused(false);
-
-      // Add a function to center the marker at the selected location
-      // This assumes that MapMarker component listens to the map's center
     } catch (error) {
       console.error("Error selecting location:", error);
     } finally {
@@ -298,7 +548,8 @@ function LocationSearch() {
   // Use debounce hook to delay API calls while typing
   useEffect(() => {
     if (!debouncedSearchValue.trim()) {
-      setSuggestions([]);
+      // Show preloaded cities when search is empty
+      setSuggestions(preloadedMoroccoCities);
       setError(null);
       return;
     }
@@ -306,33 +557,68 @@ function LocationSearch() {
     searchLocation(debouncedSearchValue);
   }, [debouncedSearchValue]);
 
+  // Show preloaded cities when focused and no search value
+  useEffect(() => {
+    if (isFocused && !searchValue.trim()) {
+      setSuggestions(preloadedMoroccoCities);
+    }
+  }, [isFocused, searchValue]);
+
   const handleInputChange = (value: string) => {
     setSearchValue(value);
 
     // If the user clears the input, reset everything
     if (!value.trim()) {
       setSelectedLocation(null);
+      // Show preloaded cities immediately on clear
+      setSuggestions(preloadedMoroccoCities);
     }
   };
 
   const handleInputFocus = () => {
     setIsFocused(true);
+    setShouldCloseDropdown(false);
     // If we already have a search value, trigger search again
     if (searchValue.trim()) {
       searchLocation(searchValue);
+    } else {
+      // Show preloaded cities immediately on focus
+      setSuggestions(preloadedMoroccoCities);
     }
   };
 
-  const handleOutsideClick = () => {
-    // Don't hide dropdown immediately to allow clicking on suggestions
-    setTimeout(() => {
+  const handleOutsideClick = (e: MouseEvent) => {
+    // Don't close if clicking on the input or dropdown
+    if (
+      inputRef.current &&
+      (inputRef.current.contains(e.target as Node) ||
+        (dropdownRef.current && dropdownRef.current.contains(e.target as Node)))
+    ) {
+      return;
+    }
+
+    // Only close if we're not in the middle of focusing
+    if (shouldCloseDropdown) {
       setIsFocused(false);
-    }, 200);
+    } else {
+      // Reset the flag for next time
+      setShouldCloseDropdown(true);
+    }
   };
+
+  // Reset the shouldCloseDropdown flag after the dropdown is open
+  useEffect(() => {
+    if (isFocused) {
+      const timer = setTimeout(() => {
+        setShouldCloseDropdown(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isFocused]);
 
   const clearSearch = () => {
     setSearchValue("");
-    setSuggestions([]);
+    setSuggestions(preloadedMoroccoCities);
     setSelectedLocation(null);
     setError(null);
   };
@@ -345,15 +631,18 @@ function LocationSearch() {
     };
   }, []);
 
-  // Helper function to highlight matched text in suggestions
+  // Helper function to highlight matched text in suggestions with enhanced styling
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
 
     try {
-      const regex = new RegExp(`(${query.trim()})`, "gi");
+      const regex = new RegExp(
+        `(${query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+        "gi"
+      );
       return text.replace(
         regex,
-        '<mark class="bg-green-100 text-green-800 px-0.5 rounded">$1</mark>'
+        '<mark class="bg-gradient-to-r from-green-100 to-lime-100 text-green-800 px-1 py-0.5 rounded-sm font-medium">$1</mark>'
       );
     } catch (e) {
       return text;
@@ -361,8 +650,8 @@ function LocationSearch() {
   };
 
   return (
-    <div className="relative z-50 w-full">
-      <div className="flex items-center relative">
+    <div className="relative z-50 w-full max-w-[400px] mx-auto mt-8">
+      <div className="flex items-center relative" ref={inputRef}>
         <FloatingLabelInput
           icon={Search}
           label="Office Location"
@@ -382,15 +671,52 @@ function LocationSearch() {
         )}
       </div>
 
+      {/* Add a "Use my current location" button below the search bar */}
+      <div className="flex justify-center mt-2">
+        <button
+          onClick={getUserLocation}
+          className="text-xs flex items-center gap-1 text-green-600 hover:text-green-700 transition-colors"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <svg
+              className="animate-spin h-3 w-3 text-green-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <MapPin className="h-3 w-3" />
+          )}
+          <span>
+            {isLoading ? "Getting location..." : "Use my current location"}
+          </span>
+        </button>
+      </div>
+
       <AnimatePresence>
         {isFocused && (isLoading || error || suggestions.length > 0) && (
           <motion.div
+            ref={dropdownRef}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }} // Faster animation
             className="absolute w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-30 max-h-60 overflow-y-auto"
-            // Stop propagation to prevent outside click handler from firing
-            onMouseDown={(e) => e.stopPropagation()}
           >
             {isLoading ? (
               <div className="p-3 text-center text-gray-500">
@@ -429,15 +755,20 @@ function LocationSearch() {
                     key={suggestion.properties.mapbox_id}
                     className="p-3 hover:bg-gray-50 cursor-pointer"
                     onClick={() => selectLocation(suggestion)}
-                    whileHover={{ backgroundColor: "rgba(74, 175, 87, 0.1)" }}
+                    whileHover={{
+                      backgroundColor: "rgba(74, 175, 87, 0.1)",
+                      scale: 1.01,
+                      transition: { duration: 0.1 },
+                    }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     <div className="flex items-start gap-2">
-                      <div className="mt-0.5 bg-green-50 p-1.5 rounded-full flex-shrink-0">
+                      <div className="mt-0.5 bg-gradient-to-r from-green-50 to-lime-50 p-1.5 rounded-full flex-shrink-0 border border-green-100">
                         <MapPin className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
                         <div
-                          className="font-medium"
+                          className="font-medium text-green-900"
                           dangerouslySetInnerHTML={{
                             __html: highlightMatch(
                               suggestion.properties.name,
@@ -456,14 +787,24 @@ function LocationSearch() {
                             }}
                           />
                         )}
-                        <div className="text-xs text-gray-400 mt-1">
-                          {suggestion.properties.feature_type === "address"
-                            ? "Address"
-                            : suggestion.properties.feature_type === "poi"
-                            ? "Point of Interest"
-                            : suggestion.properties.feature_type === "place"
-                            ? "Place"
-                            : suggestion.properties.feature_type}
+                        <div className="text-xs text-gray-400 mt-1 flex items-center">
+                          {suggestion.properties.feature_type === "address" ? (
+                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                              Address
+                            </span>
+                          ) : suggestion.properties.feature_type === "poi" ? (
+                            <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-xs">
+                              Point of Interest
+                            </span>
+                          ) : suggestion.properties.feature_type === "place" ? (
+                            <span className="bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-xs">
+                              City
+                            </span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                              {suggestion.properties.feature_type}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -491,7 +832,11 @@ function LocationSearch() {
       </AnimatePresence>
 
       {selectedLocation && (
-        <div className="mt-3 p-3 bg-green-50 border border-green-100 rounded-md">
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 p-3 bg-gradient-to-r from-green-50 to-lime-50 border border-green-100 rounded-md shadow-sm"
+        >
           <div className="flex items-start gap-2">
             <MapPin className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -501,13 +846,14 @@ function LocationSearch() {
               <div className="text-sm text-green-700">
                 {selectedLocation.properties.place_formatted}
               </div>
-              <div className="text-xs text-green-600 mt-1">
+              <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
                 {selectedLocation.properties.coordinates.latitude.toFixed(6)},{" "}
                 {selectedLocation.properties.coordinates.longitude.toFixed(6)}
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -588,36 +934,89 @@ function MapSection({
           }
         }}
       >
-        {/* Map container */}
-        <div className="relative w-full h-[400px] rounded-lg overflow-hidden shadow-md border bg-gradient-to-b from-sky-50 to-white">
-          <div
-            ref={mapContainerRef}
-            className="absolute inset-0 w-full h-full transition-all duration-500 hover:shadow-lg"
-          />
+        <MapContent
+          isMapLoaded={isMapLoaded}
+          mapContainerRef={mapContainerRef}
+        />
+      </MapProvider>
+    </div>
+  );
+}
 
-          {isMapLoaded && <MapMarker />}
+// Separate component to use map context safely inside MapProvider
+function MapContent({
+  isMapLoaded,
+  mapContainerRef,
+}: {
+  isMapLoaded: boolean;
+  mapContainerRef: React.RefObject<MapboxHTMLElement | null>;
+}) {
+  const { map } = useMap();
 
-          <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-lg border border-gray-100">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  Set Your Office Location
-                </h3>
-                <p className="text-xs text-gray-700">
-                  Place the pin at your exact office location. You can drag the
-                  map to position the marker precisely where your office is
-                  located in Morocco.
-                </p>
-              </div>
+  const zoomIn = () => {
+    map?.zoomIn();
+  };
+
+  const zoomOut = () => {
+    map?.zoomOut();
+  };
+
+  return (
+    <>
+      {/* Map container */}
+      <div className="relative w-full h-[400px] rounded-lg overflow-hidden shadow-md border bg-gradient-to-b from-sky-50 to-white">
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full transition-all duration-500 hover:shadow-lg"
+        />
+
+        {isMapLoaded && <MapMarker />}
+
+        {/* Zoom controls - properly inside MapProvider context */}
+        {isMapLoaded && (
+          <div className="absolute top-4 right-4 bg-white p-1.5 rounded-lg shadow-lg flex flex-col z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-sm w-6 h-6"
+              onClick={zoomIn}
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span className="sr-only">Zoom in</span>
+            </Button>
+            <div className="w-5 h-px bg-gray-200 mx-auto my-1.5"></div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-sm w-6 h-6"
+              onClick={zoomOut}
+            >
+              <MinusIcon className="w-5 h-5" />
+              <span className="sr-only">Zoom out</span>
+            </Button>
+          </div>
+        )}
+
+        <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-lg border border-gray-100">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-1">
+                Set Your Office Location
+              </h3>
+              <p className="text-xs text-gray-700">
+                Place the pin at your exact office location. You can drag the
+                map to position the marker precisely where your office is
+                located in Morocco.
+              </p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Location search below the map but in the same context */}
-        {isMapLoaded && <LocationSearch />}
-      </MapProvider>
-    </div>
+      {/* Location search below the map but in the same context */}
+      {isMapLoaded && <LocationSearch />}
+    </>
   );
 }
 
@@ -627,6 +1026,15 @@ export default function SetLocationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirmLocation = async () => {
+    // Check if user is logged in
+    const userLoggedIn = false; // Replace with actual authentication check
+
+    if (!userLoggedIn) {
+      // Redirect to login page if not logged in
+      router.push("/login");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -670,44 +1078,46 @@ export default function SetLocationPage() {
           {/* Map with search below it */}
           <MapSection />
 
-          <Button
-            type="button"
-            variant="gradient"
-            className="w-full py-5 mt-4"
-            onClick={handleConfirmLocation}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center gap-2">
-                <svg
-                  className="animate-spin h-4 w-4 text-[#1A3617]"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Processing...</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span>Confirm Location</span>
-                <Check className="h-5 w-5" />
-              </div>
-            )}
-          </Button>
+          <div className="flex items-center justify-center max-w-[400px] mx-auto">
+            <Button
+              type="button"
+              variant="gradient"
+              className="w-full py-5 !mt-0"
+              onClick={handleConfirmLocation}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin h-4 w-4 text-[#1A3617]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span>Confirm Location</span>
+                  <Check className="h-5 w-5" />
+                </div>
+              )}
+            </Button>
+          </div>
         </motion.div>
       </div>
     </motion.div>
