@@ -106,13 +106,13 @@ const FloatingLabelInput = React.forwardRef<
                 animate={{
                   opacity: 1,
                   x: 0,
-                  y: isHovered ? [-1, 1, -1] : 0,
+                  y: isHovered || isFocused ? [-1, 1, -1] : 0,
                 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{
                   y: {
                     duration: 1.5,
-                    repeat: Infinity,
+                    repeat: isHovered || isFocused ? Infinity : 0,
                     ease: "easeInOut",
                     repeatType: "reverse",
                   },

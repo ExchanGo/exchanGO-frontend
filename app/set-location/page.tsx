@@ -26,20 +26,38 @@ function MapMarker() {
   useEffect(() => {
     if (!map) return;
 
+    console.log("marker", marker);
+
     // Create a custom marker element
     const el = document.createElement("div");
     el.className = "custom-marker";
     el.innerHTML = `
-      <div class="w-12 h-12 flex items-center justify-center">
-        <div class="absolute animate-ping w-5 h-5 bg-green-500 rounded-full opacity-75"></div>
-        <div class="relative w-8 h-8 flex items-center justify-center bg-green-500 text-white rounded-full shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
+    <div class="flex flex-col items-center justify-center">
+       <div class="rounded-sm px-1.5 shadow-lg font-normal relative z-10 border border-gray-100 bg-white">
+          <span class="text-xs text-balck">
+          My Office Point Here
+          </span>
+        </div>
+
+        <div class="w-12 h-12 flex items-center justify-center">
+     
+         <svg width="24" height="42" className="w-5 h-5 bg-green-500 rounded-full opacity-75" viewBox="0 0 24 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10.5 40C10.5 40.8284 11.1716 41.5 12 41.5C12.8284 41.5 13.5 40.8284 13.5 40H10.5ZM12 19H10.5V40H12H13.5V19H12Z" fill="#20523C"/>
+          <circle cx="12" cy="12" r="12" fill="#D9D9D9"/>
+          <circle cx="12" cy="12" r="12" fill="url(#paint0_radial_1203_39356)"/>
+          <path d="M8.75909 4.43518C7.21808 4.9795 5.88894 5.9977 4.96218 7.34385C4.03542 8.68999 3.55861 10.295 3.60009 11.9288C3.64157 13.5626 4.19921 15.1413 5.19309 16.4387" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+          <radialGradient id="paint0_radial_1203_39356" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(12.0828 27.913) rotate(-90.2085) scale(22.744 15.8023)">
+          <stop stop-color="#C3F63C"/>
+          <stop offset="1" stop-color="#54D10E"/>
+          </radialGradient>
+          </defs>
           </svg>
         </div>
       </div>
-      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2 w-2 h-2 bg-green-500 rotate-45"></div>
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2 w-2 h-2 bg-[#54D10E] rotate-45"></div>
+    </div>
+      
     `;
 
     // Create the marker and add it to the map
@@ -197,7 +215,7 @@ function LocationSearch() {
   }, []);
 
   return (
-    <div className="relative z-20 w-full">
+    <div className="relative z-50 w-full">
       <FloatingLabelInput
         icon={Search}
         label="Office Location"
@@ -293,34 +311,73 @@ function MapSection({
     setIsMapLoaded(true);
   };
 
+  // Handle map focused on Morocco after it loads
+  const handleMapInstance = (mapInstance: mapboxgl.Map | null) => {
+    if (mapInstance) {
+      // Enhance map with Morocco focus and modern styling
+      mapInstance.once("load", () => {
+        mapInstance.flyTo({
+          center: [-7.092, 31.792],
+          zoom: 5.5,
+          essential: true,
+          duration: 2000,
+          pitch: 20, // Add slight tilt for modern 3D effect
+          bearing: -10,
+        });
+
+        // Add terrain if available
+        if (mapInstance.getStyle().layers) {
+          mapInstance.setFog({
+            color: "rgb(220, 230, 240)", // Light blue-ish fog
+            "high-color": "rgb(245, 250, 255)", // Light color at upper atmosphere
+            "horizon-blend": 0.1, // Lower atmosphere haze
+            "space-color": "rgb(220, 230, 240)", // Dark blue/purple upper atmosphere
+            "star-intensity": 0.2, // Dim stars
+          });
+        }
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <MapProvider
         mapContainerRef={mapContainerRef}
         initialViewState={{
-          longitude: -99.29011,
-          latitude: 39.39172,
-          zoom: 3.5,
+          longitude: -7.092,
+          latitude: 31.792,
+          zoom: 5.5,
         }}
-        onLoad={handleMapLoad}
+        onLoad={() => {
+          handleMapLoad();
+          // Get the map instance from the container ref
+          if (mapContainerRef.current?.__mbMap) {
+            handleMapInstance(mapContainerRef.current.__mbMap);
+          }
+        }}
       >
         {/* Map container */}
-        <div className="relative w-full h-[400px] rounded-lg overflow-hidden shadow-md border">
+        <div className="relative w-full h-[400px] rounded-lg overflow-hidden shadow-md border bg-gradient-to-b from-sky-50 to-white">
           <div
             ref={mapContainerRef}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full transition-all duration-500 hover:shadow-lg"
           />
 
           {isMapLoaded && <MapMarker />}
 
-          <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-md shadow-md">
-            <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
-                Place the pin at your exact office location. You can drag the
-                map to position the marker precisely where your office is
-                located.
-              </p>
+          <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-lg border border-gray-100">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">
+                  Set Your Office Location
+                </h3>
+                <p className="text-xs text-gray-700">
+                  Place the pin at your exact office location. You can drag the
+                  map to position the marker precisely where your office is
+                  located in Morocco.
+                </p>
+              </div>
             </div>
           </div>
         </div>
