@@ -79,14 +79,28 @@ export default function Search() {
       const mapInstance =
         mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
       if (mapInstance && typeof mapInstance.resize === "function") {
-        mapInstance.resize();
+        try {
+          // Use requestAnimationFrame to ensure DOM has updated
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              try {
+                mapInstance.resize();
+                console.log("🔄 Map resized for container change");
+              } catch (error) {
+                console.warn("Map resize failed:", error);
+              }
+            });
+          });
+        } catch (error) {
+          console.warn("Map resize setup failed:", error);
+        }
       }
     };
 
-    // Wait a tiny bit for the DOM to update before resizing
+    // Use a longer delay for production to ensure animations complete
     const timeoutId = setTimeout(() => {
       resizeMap();
-    }, 50);
+    }, 350); // Increased from 50ms to 350ms to match animation duration
 
     return () => clearTimeout(timeoutId);
   }, [isMapMaximized, navbarHeight]);
@@ -169,16 +183,17 @@ export default function Search() {
             <motion.div
               className={cn(
                 "w-full h-full transition-all duration-300 overflow-hidden shadow-l-lg",
-                isMapMaximized && "rounded-lg overflow-hidden"
+                isMapMaximized && "overflow-hidden"
               )}
               style={{
                 height: !isMapMaximized
                   ? navbarHeight > 0
                     ? `calc(100vh - ${navbarHeight}px)`
                     : "calc(100vh - 125px)"
-                  : "100vh",
+                  : "calc(100vh - 125px)",
               }}
               layout
+              data-map-container
             >
               {/* Map placeholder for faster initial rendering */}
               {!mapLoaded && (

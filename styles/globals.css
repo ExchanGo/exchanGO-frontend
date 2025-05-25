@@ -310,6 +310,25 @@
       transform: scale(0.95) !important;
     }
     
+    /* Map container optimizations for better animation performance */
+    .mapboxgl-map {
+      will-change: transform, opacity !important;
+      transform: translateZ(0) !important; /* Force hardware acceleration */
+      backface-visibility: hidden !important; /* Prevent flickering */
+    }
+    
+    /* Optimize map canvas for animations */
+    .mapboxgl-canvas {
+      will-change: transform !important;
+      transform: translateZ(0) !important;
+    }
+    
+    /* Smooth transitions for map container resizing */
+    [data-map-container] {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      will-change: width, height, transform !important;
+      transform: translateZ(0) !important;
+    }
    
     
 }
