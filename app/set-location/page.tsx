@@ -20,7 +20,9 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { LocationFeature } from "@/lib/mapbox/utils";
 import { FloatingLabelInput } from "@/components/ui/FloatingLabelInput";
-import { Separator } from "@radix-ui/react-select";
+import { Loader } from "@/components/ui/Loader";
+import { RegistrationSuccessModal } from "@/components/modals/RegistrationSuccessModal";
+import { useModalStore } from "@/store/useModalStore";
 
 // Define MapboxHTMLElement interface
 interface MapboxHTMLElement extends HTMLDivElement {
@@ -232,16 +234,8 @@ function LocationSearch() {
   const getUserLocation = () => {
     if (!map) return;
 
-    // Check if user is logged in
-    const userLoggedIn = false; // Replace with actual authentication check
-
-    if (!userLoggedIn) {
-      // Redirect to login page if not logged in
-      window.location.href = "/login";
-      return;
-    }
-
     setIsLoading(true);
+    setError(null);
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -300,11 +294,37 @@ function LocationSearch() {
               // Update search value and selected location
               setSearchValue(feature.place_name || "Current Location");
               setSelectedLocation(locationFeature);
+              setSuggestions([]);
             }
           } catch (error) {
             console.error("Error reverse geocoding:", error);
             // If reverse geocoding fails, just use coordinates
             setSearchValue(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+            // Create a basic location feature with the coordinates
+            const locationFeature: LocationFeature = {
+              type: "Feature",
+              geometry: {
+                type: "Point",
+                coordinates: [longitude, latitude],
+              },
+              properties: {
+                name: "Current Location",
+                mapbox_id: "current_location",
+                feature_type: "address",
+                place_formatted: `${latitude.toFixed(6)}, ${longitude.toFixed(
+                  6
+                )}`,
+                coordinates: {
+                  longitude,
+                  latitude,
+                },
+                context: {} as any,
+                maki: "marker",
+              },
+            };
+
+            setSelectedLocation(locationFeature);
           } finally {
             setIsLoading(false);
             setSuggestions([]);
@@ -314,19 +334,37 @@ function LocationSearch() {
           console.error("Error getting location:", error);
           setIsLoading(false);
 
-          // Show error message to user
-          alert(
-            "Could not get your location. Please make sure location services are enabled."
-          );
+          // Show specific error message based on the error code
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              setError(
+                "Location access was denied. Please enable location services in your browser settings."
+              );
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setError(
+                "Location information is unavailable. Please try again later."
+              );
+              break;
+            case error.TIMEOUT:
+              setError(
+                "The request to get your location timed out. Please try again."
+              );
+              break;
+            default:
+              setError(
+                "An unknown error occurred while getting your location."
+              );
+          }
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 10000, // Increased timeout for better reliability
           maximumAge: 0,
         }
       );
     } else {
-      alert("Geolocation is not supported by this browser.");
+      setError("Geolocation is not supported by this browser.");
       setIsLoading(false);
     }
   };
@@ -1024,102 +1062,108 @@ function MapContent({
 export default function SetLocationPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Get modal control functions from zustand store
+  const {
+    openRegistrationSuccess,
+    isRegistrationSuccessOpen,
+    closeRegistrationSuccess,
+  } = useModalStore();
 
   const handleConfirmLocation = async () => {
-    // Check if user is logged in
-    const userLoggedIn = false; // Replace with actual authentication check
-
-    if (!userLoggedIn) {
-      // Redirect to login page if not logged in
-      router.push("/login");
-      return;
-    }
-
     setIsSubmitting(true);
+    setConfirmError(null);
+    setIsLoading(true);
 
     try {
       // Here you would typically save the location data
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Redirect to dashboard or confirmation page
-      router.push("/dashboard");
+      // Open the success modal
+      openRegistrationSuccess();
     } catch (error) {
       console.error("Error saving location:", error);
+      setConfirmError("Failed to save location. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <motion.div
-      className="min-h-screen flex flex-col"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <AuthNavbar activeStep={3} />
+    <>
+      <motion.div
+        className="min-h-screen flex flex-col"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <AuthNavbar activeStep={3} />
 
-      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-8">
-        <motion.div
-          className="w-full space-y-6"
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl text-[#212223] font-bold">
-              Set Your Office Location
-            </h1>
-            <p className="text-[#585858]">
-              Provide your office's location details to complete your profile.
-            </p>
-          </div>
+        <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-8">
+          <motion.div
+            className="w-full space-y-6"
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl text-[#212223] font-bold">
+                Set Your Office Location
+              </h1>
+              <p className="text-[#585858]">
+                Provide your office's location details to complete your profile.
+              </p>
+            </div>
 
-          {/* Map with search below it */}
-          <MapSection />
+            {/* Map with search below it */}
+            <MapSection />
 
-          <div className="flex items-center justify-center max-w-[400px] mx-auto">
-            <Button
-              type="button"
-              variant="gradient"
-              className="w-full py-5 !mt-0"
-              onClick={handleConfirmLocation}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="animate-spin h-4 w-4 text-[#1A3617]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <span>Processing...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span>Confirm Location</span>
-                  <Check className="h-5 w-5" />
-                </div>
+            <div className="flex flex-col items-center justify-center max-w-[400px] mx-auto gap-3">
+              {confirmError && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="w-full p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-md"
+                >
+                  {confirmError}
+                </motion.div>
               )}
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    </motion.div>
+
+              <Button
+                type="button"
+                variant="gradient"
+                className="w-full py-5 !mt-0"
+                onClick={handleConfirmLocation}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <Loader size="sm" className="mr-2" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>Confirm Location</span>
+                    <Check className="h-5 w-5" />
+                  </div>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Full-screen loader */}
+      {isLoading && <Loader isFullScreen size="lg" />}
+
+      {/* Registration success modal */}
+      <RegistrationSuccessModal
+        isOpen={isRegistrationSuccessOpen}
+        onClose={closeRegistrationSuccess}
+      />
+    </>
   );
 }

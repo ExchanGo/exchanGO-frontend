@@ -1,0 +1,49 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green confetti -->
+  <rect x="120" y="50" width="15" height="15" transform="rotate(45 120 50)" fill="#54D10E" opacity="0.6"/>
+  <rect x="420" y="150" width="10" height="10" transform="rotate(12 420 150)" fill="#54D10E" opacity="0.7"/>
+  <rect x="620" y="250" width="12" height="12" transform="rotate(78 620 250)" fill="#54D10E" opacity="0.8"/>
+  <rect x="220" y="350" width="8" height="8" transform="rotate(34 220 350)" fill="#54D10E" opacity="0.6"/>
+  <rect x="520" y="450" width="14" height="14" transform="rotate(56 520 450)" fill="#54D10E" opacity="0.7"/>
+  <rect x="320" y="550" width="11" height="11" transform="rotate(23 320 550)" fill="#54D10E" opacity="0.8"/>
+  
+  <!-- Light green confetti -->
+  <rect x="250" y="75" width="13" height="13" transform="rotate(67 250 75)" fill="#A2D729" opacity="0.7"/>
+  <rect x="550" y="175" width="9" height="9" transform="rotate(89 550 175)" fill="#A2D729" opacity="0.6"/>
+  <rect x="150" y="275" width="11" height="11" transform="rotate(45 150 275)" fill="#A2D729" opacity="0.7"/>
+  <rect x="450" y="375" width="7" height="7" transform="rotate(12 450 375)" fill="#A2D729" opacity="0.8"/>
+  <rect x="650" y="475" width="13" height="13" transform="rotate(78 650 475)" fill="#A2D729" opacity="0.6"/>
+  <rect x="350" y="25" width="10" height="10" transform="rotate(34 350 25)" fill="#A2D729" opacity="0.7"/>
+  
+  <!-- Dark green confetti -->
+  <rect x="180" y="100" width="14" height="14" transform="rotate(23 180 100)" fill="#2C7E1C" opacity="0.6"/>
+  <rect x="480" y="200" width="8" height="8" transform="rotate(56 480 200)" fill="#2C7E1C" opacity="0.7"/>
+  <rect x="680" y="300" width="12" height="12" transform="rotate(78 680 300)" fill="#2C7E1C" opacity="0.8"/>
+  <rect x="80" y="400" width="10" height="10" transform="rotate(12 80 400)" fill="#2C7E1C" opacity="0.6"/>
+  <rect x="380" y="500" width="7" height="7" transform="rotate(45 380 500)" fill="#2C7E1C" opacity="0.7"/>
+  <rect x="280" y="50" width="11" height="11" transform="rotate(34 280 50)" fill="#2C7E1C" opacity="0.8"/>
+  
+  <!-- More confetti in different positions -->
+  <rect x="100" y="150" width="9" height="9" transform="rotate(22 100 150)" fill="#54D10E" opacity="0.7"/>
+  <rect x="400" y="250" width="13" height="13" transform="rotate(55 400 250)" fill="#A2D729" opacity="0.6"/>
+  <rect x="600" y="350" width="8" height="8" transform="rotate(33 600 350)" fill="#2C7E1C" opacity="0.7"/>
+  <rect x="200" y="450" width="12" height="12" transform="rotate(67 200 450)" fill="#54D10E" opacity="0.8"/>
+  <rect x="500" y="550" width="10" height="10" transform="rotate(89 500 550)" fill="#A2D729" opacity="0.6"/>
+  <rect x="300" y="100" width="7" height="7" transform="rotate(45 300 100)" fill="#2C7E1C" opacity="0.7"/>
+  
+  <!-- Some elongated confetti -->
+  <rect x="150" y="200" width="20" height="5" transform="rotate(34 150 200)" fill="#54D10E" opacity="0.7"/>
+  <rect x="450" y="300" width="18" height="4" transform="rotate(67 450 300)" fill="#A2D729" opacity="0.6"/>
+  <rect x="650" y="400" width="22" height="6" transform="rotate(12 650 400)" fill="#2C7E1C" opacity="0.8"/>
+  <rect x="250" y="500" width="15" height="3" transform="rotate(56 250 500)" fill="#54D10E" opacity="0.7"/>
+  <rect x="550" y="50" width="17" height="5" transform="rotate(23 550 50)" fill="#A2D729" opacity="0.6"/>
+  <rect x="350" y="150" width="19" height="4" transform="rotate(78 350 150)" fill="#2C7E1C" opacity="0.7"/>
+  
+  <!-- Small circular confetti -->
+  <circle cx="120" cy="225" r="5" fill="#54D10E" opacity="0.8"/>
+  <circle cx="420" cy="325" r="4" fill="#A2D729" opacity="0.7"/>
+  <circle cx="620" cy="425" r="6" fill="#2C7E1C" opacity="0.6"/>
+  <circle cx="220" cy="525" r="3" fill="#54D10E" opacity="0.7"/>
+  <circle cx="520" cy="75" r="5" fill="#A2D729" opacity="0.8"/>
+  <circle cx="320" cy="175" r="4" fill="#2C7E1C" opacity="0.6"/>
+</svg> 
