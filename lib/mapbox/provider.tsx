@@ -24,7 +24,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
 // Water color constants
 const WATER_COLOR = "#4FB9E5"; // Bright blue water color
-const LAND_COLOR = "#f8f8f8"; // Light background color
+const LAND_COLOR = "#f5f5f0"; // Light background color
 
 // Flag to track initialization
 let isInitialized = false;

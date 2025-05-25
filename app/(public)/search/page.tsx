@@ -8,6 +8,7 @@ import MapProvider from "@/lib/mapbox/provider";
 import MapSearch from "@/components/map/map-search";
 import MapCotrols from "@/components/map/map-controls";
 import MapStyles from "@/components/map/map-styles";
+import MapScaleControls from "@/components/map/map-scale-controls";
 import { useMapStore } from "@/store/map";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
@@ -276,6 +277,7 @@ export default function Search() {
                 <MapSearch />
                 <MapCotrols />
                 <MapStyles />
+                <MapScaleControls />
               </MapProvider>
             </motion.div>
           </motion.div>
