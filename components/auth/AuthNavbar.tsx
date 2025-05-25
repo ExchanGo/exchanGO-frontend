@@ -52,7 +52,7 @@ export default function AuthNavbar({ activeStep = 1 }: AuthNavbarProps) {
         <div className="flex items-center">
           <Link href="/">
             <Image
-              src="/svg/Logo-exchange-black.svg"
+              src="/svg/logo-exchange-black.svg"
               alt="ExchanGo24"
               width={209}
               height={42}
