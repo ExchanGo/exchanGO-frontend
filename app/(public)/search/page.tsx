@@ -44,36 +44,9 @@ export default function Search() {
   const mapInitialized = useRef<boolean>(false);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Add prefetching state to improve perceived performance
-  const [isMapPrefetched, setIsMapPrefetched] = useState(false);
-
   // Effect to measure navbar height on mount and resize
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    // Prefetch the map resources to improve load time
-    const prefetchMapResources = async () => {
-      // Prefetch mapbox GL stylesheet
-      const linkElement = document.createElement("link");
-      linkElement.rel = "preload";
-      linkElement.as = "style";
-      linkElement.href =
-        "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css";
-      document.head.appendChild(linkElement);
-
-      // Prefetch initial terrain data
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/styles/v1/mapbox/light-v11?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
-        );
-        if (response.ok) {
-          await response.json(); // This will cache the response
-          setIsMapPrefetched(true);
-        }
-      } catch (error) {
-        console.error("Failed to prefetch map resources:", error);
-      }
-    };
 
     const updateNavbarHeight = () => {
       const navbar = document.querySelector("nav");
@@ -84,7 +57,6 @@ export default function Search() {
     };
 
     updateNavbarHeight();
-    prefetchMapResources();
     window.addEventListener("resize", updateNavbarHeight);
 
     return () => {
@@ -121,36 +93,17 @@ export default function Search() {
 
   // Handle map load and initialization
   const handleMapLoad = () => {
-    mapInitialized.current = true;
+    if (mapInitialized.current) return; // Prevent multiple initializations
 
-    // Delay showing map as loaded to allow for initialization
-    setTimeout(() => {
-      setMapLoaded(true);
-    }, 400); // Small delay for smoother transition
+    mapInitialized.current = true;
+    setMapLoaded(true);
+
+    console.log("🗺️ Map loaded successfully");
 
     // Apply any additional map initialization
     const mapInstance =
       mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
     if (mapInstance) {
-      // Enable terrain if available
-      if (mapInstance.getStyle().layers) {
-        mapInstance.setFog({
-          color: "rgb(220, 230, 240)", // Light blue-ish fog
-          "high-color": "rgb(245, 250, 255)", // Light color at upper atmosphere
-          "horizon-blend": 0.1, // Lower atmosphere haze
-          "space-color": "rgb(220, 230, 240)", // Dark blue/purple upper atmosphere
-          "star-intensity": 0.2, // Dim stars
-        });
-
-        // Add enhanced performance settings
-        mapInstance.setRenderWorldCopies(false); // Disable world copies for better performance
-        mapInstance.setMaxZoom(16); // Limit zoom to prevent excessive tile loading
-      }
-
-      // Enhance map interaction - but keep them lightweight for performance
-      mapInstance.dragRotate.enable();
-      mapInstance.touchZoomRotate.enableRotation();
-
       // Optimize for performance
       mapInstance.setTerrain(null); // Disable terrain for better performance
       mapInstance.setPitch(0); // Start with flat view for faster rendering
@@ -228,30 +181,30 @@ export default function Search() {
               layout
             >
               {/* Map placeholder for faster initial rendering */}
-              {!isMapPrefetched && (
+              {!mapLoaded && (
                 <div className="absolute inset-0 z-40 bg-gray-100 flex items-center justify-center">
                   <div className="text-center p-4">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-t-green-500 border-gray-200 animate-spin"></div>
                     <p className="text-sm font-medium text-gray-600">
-                      Preparing map resources...
+                      Loading map...
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Map loading overlay */}
+              {/* Map loading overlay - only show if map is not loaded */}
               <AnimatePresence>
                 {!mapLoaded && (
                   <motion.div
-                    className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center"
+                    className="absolute inset-0 z-50 bg-white/90 backdrop-blur-sm flex items-center justify-center"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.3 }}
                   >
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 rounded-full border-4 border-t-[#79DD1C] border-gray-200 animate-spin"></div>
                       <p className="text-sm font-medium text-gray-600">
-                        Loading map...
+                        Initializing map...
                       </p>
                     </div>
                   </motion.div>

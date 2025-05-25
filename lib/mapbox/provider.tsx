@@ -26,72 +26,159 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const WATER_COLOR = "#4FB9E5"; // Bright blue water color
 const LAND_COLOR = "#f5f5f0"; // Light background color
 
-// Flag to track initialization
-let isInitialized = false;
-
-// Store the map instance globally for easier access from outside
+// Global map instance cache - this persists across page navigations
 let globalMapInstance: mapboxgl.Map | null = null;
+let isMapInitialized = false;
+let mapLoadPromise: Promise<mapboxgl.Map> | null = null;
 
-// Define types for Mapbox style layer
-interface MapboxStyleLayer {
-  id: string;
-  type: string;
-  paint?: Record<string, unknown>;
-}
+// Optimized style for faster loading
+const FAST_STYLE = "mapbox://styles/mapbox/light-v11";
 
-// Create a custom Mapbox style with pre-set water color
-const createCustomMapStyle = async () => {
+// Function to apply custom colors to the map
+const applyCustomColors = (map: mapboxgl.Map) => {
+  // Apply colors immediately if map is already loaded
+  if (map.loaded()) {
+    applyColorsToLayers(map);
+    return;
+  }
+
+  // Apply colors as soon as style data is available (faster than waiting for full load)
+  map.once("styledata", () => {
+    applyColorsToLayers(map);
+  });
+
+  // Fallback to load event
+  map.once("load", () => {
+    applyColorsToLayers(map);
+  });
+};
+
+// Separate function to actually apply the colors
+const applyColorsToLayers = (map: mapboxgl.Map) => {
   try {
-    // Fetch the base light style
-    const response = await fetch(
-      "https://api.mapbox.com/styles/v1/mapbox/light-v11?access_token=" +
-        mapboxgl.accessToken
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch base style");
-    }
-
-    const baseStyle = await response.json();
-
-    // Modify the style to include blue water before initialization
-    if (baseStyle && baseStyle.layers) {
-      // Find and modify all water layers
-      baseStyle.layers.forEach((layer: MapboxStyleLayer) => {
-        if (layer.id.includes("water") && layer.type === "fill") {
-          if (!layer.paint) layer.paint = {};
-          layer.paint["fill-color"] = WATER_COLOR;
-          if (layer.paint["fill-outline-color"]) {
-            layer.paint["fill-outline-color"] = WATER_COLOR;
-          }
-        }
-
-        // Also modify any other water-related layers
+    const style = map.getStyle();
+    if (style && style.layers) {
+      style.layers.forEach((layer: any) => {
+        // Apply water color to all water-related layers
         if (
-          (layer.id.includes("marine") ||
+          layer.type === "fill" &&
+          (layer.id.includes("water") ||
             layer.id.includes("ocean") ||
             layer.id.includes("sea") ||
-            layer.id.includes("blue")) &&
-          layer.type === "fill"
+            layer.id.includes("lake") ||
+            layer.id.includes("river"))
         ) {
-          if (!layer.paint) layer.paint = {};
-          layer.paint["fill-color"] = WATER_COLOR;
+          map.setPaintProperty(layer.id, "fill-color", WATER_COLOR);
+        }
+
+        // Apply background color
+        if (layer.type === "background" && layer.id === "background") {
+          map.setPaintProperty(layer.id, "background-color", LAND_COLOR);
         }
       });
-
-      // Set the background to a light color
-      const backgroundLayer = baseStyle.layers.find(
-        (layer: MapboxStyleLayer) => layer.id === "background"
-      );
-      if (backgroundLayer && backgroundLayer.paint) {
-        backgroundLayer.paint["background-color"] = LAND_COLOR;
-      }
     }
 
-    return baseStyle;
+    console.log("🎨 Applied custom map colors");
   } catch (error) {
-    console.error("Error creating custom map style:", error);
-    return null;
+    console.warn("Failed to apply custom colors:", error);
   }
+};
+
+// Create a singleton map instance that can be reused
+const createOrReuseMapInstance = async (
+  container: HTMLElement,
+  initialViewState: {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+  }
+): Promise<mapboxgl.Map> => {
+  // If we already have a map instance, try to reuse it
+  if (globalMapInstance && !globalMapInstance._removed) {
+    try {
+      // Get the current container
+      const currentContainer = globalMapInstance.getContainer();
+
+      // If the map is in a different container, move it
+      if (currentContainer !== container) {
+        // Remove from old container
+        if (currentContainer.parentNode) {
+          currentContainer.parentNode.removeChild(currentContainer);
+        }
+
+        // Add to new container
+        container.appendChild(currentContainer);
+
+        // Resize to fit new container
+        globalMapInstance.resize();
+      }
+
+      // Update view state if needed
+      const currentCenter = globalMapInstance.getCenter();
+      const currentZoom = globalMapInstance.getZoom();
+
+      if (
+        Math.abs(currentCenter.lng - initialViewState.longitude) > 0.01 ||
+        Math.abs(currentCenter.lat - initialViewState.latitude) > 0.01 ||
+        Math.abs(currentZoom - initialViewState.zoom) > 0.1
+      ) {
+        globalMapInstance.jumpTo({
+          center: [initialViewState.longitude, initialViewState.latitude],
+          zoom: initialViewState.zoom,
+        });
+      }
+
+      // Apply custom colors when reusing existing map
+      applyCustomColors(globalMapInstance);
+
+      console.log("✅ Reused existing map instance");
+      return globalMapInstance;
+    } catch (error) {
+      console.warn("Failed to reuse map instance:", error);
+      // If reuse fails, clean up and create new
+      if (globalMapInstance) {
+        globalMapInstance.remove();
+        globalMapInstance = null;
+      }
+    }
+  }
+
+  // Create new map instance
+  console.log("🆕 Creating new map instance");
+  const map = new mapboxgl.Map({
+    container,
+    style: FAST_STYLE,
+    center: [initialViewState.longitude, initialViewState.latitude],
+    zoom: initialViewState.zoom,
+    attributionControl: false,
+    logoPosition: "bottom-right",
+    pitchWithRotate: false,
+    dragRotate: false,
+    minZoom: 2,
+    maxZoom: 18,
+    fadeDuration: 0, // Instant transitions
+    preserveDrawingBuffer: false, // Better performance
+    antialias: false, // Better performance on mobile
+    collectResourceTiming: false, // Better performance
+  });
+
+  // Store globally
+  globalMapInstance = map;
+  isMapInitialized = true;
+
+  // Store on container for easy access
+  (container as MapboxHTMLElement).__mbMap = map;
+
+  // Store on window for global access
+  if (typeof window !== "undefined") {
+    window.mapboxgl = window.mapboxgl || {};
+    window.mapboxgl.map = map;
+  }
+
+  // Apply custom colors once the map is loaded
+  applyCustomColors(map);
+
+  return map;
 };
 
 interface MapProviderProps {
@@ -113,125 +200,115 @@ function MapProviderContent({
 }: MapProviderProps) {
   const mapInstance = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mapStyle, setMapStyle] = useState<StyleSpecification | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  // Step 1: Fetch and prepare the style first
+  // Initialize map
   useEffect(() => {
-    if (isInitialized || mapStyle) return;
+    if (!mapContainerRef.current || mapInstance.current || isInitializing) {
+      return;
+    }
 
-    const fetchStyle = async () => {
-      const customStyle = await createCustomMapStyle();
-      if (customStyle) {
-        setMapStyle(customStyle);
-        isInitialized = true;
+    const container = mapContainerRef.current;
+    setIsInitializing(true);
+
+    // If we already have a cached map that's loaded, use it immediately
+    if (globalMapInstance && !globalMapInstance._removed && isMapInitialized) {
+      try {
+        // Quick reuse of existing map
+        const currentContainer = globalMapInstance.getContainer();
+        if (currentContainer !== container) {
+          if (currentContainer.parentNode) {
+            currentContainer.parentNode.removeChild(currentContainer);
+          }
+          container.appendChild(currentContainer);
+          globalMapInstance.resize();
+        }
+
+        mapInstance.current = globalMapInstance;
+        container.__mbMap = globalMapInstance;
+
+        // Apply custom colors immediately when reusing
+        applyCustomColors(globalMapInstance);
+
+        setIsLoaded(true);
+        setIsInitializing(false);
+        onLoad?.();
+
+        console.log("⚡ Instantly reused cached map");
+        return;
+      } catch (error) {
+        console.warn("Quick reuse failed:", error);
+      }
+    }
+
+    // Create or get map instance
+    const initializeMap = async () => {
+      try {
+        // Use existing promise if one is in progress
+        if (!mapLoadPromise) {
+          mapLoadPromise = createOrReuseMapInstance(
+            container,
+            initialViewState
+          );
+        }
+
+        const map = await mapLoadPromise;
+        mapInstance.current = map;
+
+        // Wait for map to be fully loaded
+        if (map.loaded()) {
+          setIsLoaded(true);
+          setIsInitializing(false);
+          onLoad?.();
+        } else {
+          map.once("load", () => {
+            setIsLoaded(true);
+            setIsInitializing(false);
+            onLoad?.();
+          });
+        }
+
+        // Clear the promise since we're done
+        mapLoadPromise = null;
+      } catch (error) {
+        console.error("Failed to initialize map:", error);
+        setIsInitializing(false);
+        mapLoadPromise = null;
       }
     };
 
-    fetchStyle();
-  }, [mapStyle]);
+    initializeMap();
 
-  // Step 2: Initialize map only after we have the custom style
-  useEffect(() => {
-    // If we already have a map instance or no container/style, bail out
-    if (!mapContainerRef.current || mapInstance.current || !mapStyle) return;
-
-    // Store container reference for cleanup function
-    const containerRef = mapContainerRef.current;
-
-    // Check if we already have a global map instance we can reuse
-    if (globalMapInstance && document.contains(containerRef)) {
-      console.log("Reusing existing map instance");
-      mapInstance.current = globalMapInstance;
-
-      // Make sure the map is attached to the current container
-      if (containerRef && containerRef !== globalMapInstance.getContainer()) {
-        try {
-          // Move the map to the new container
-          globalMapInstance.getContainer().remove();
-          containerRef.appendChild(globalMapInstance.getContainer());
-          globalMapInstance.resize();
-        } catch (e) {
-          console.warn("Error reattaching map:", e);
-          // If reattachment fails, create a new map
-          globalMapInstance = null;
-        }
-      }
-
-      // If we successfully reused the map, we're done
-      if (globalMapInstance) {
-        setIsLoaded(true);
-        onLoad?.();
-        return;
-      }
-    }
-
-    // Initialize a new map if needed
-    console.log("Creating new map instance");
-    const map = new mapboxgl.Map({
-      container: containerRef,
-      style: mapStyle, // Use our custom style with blue water
-      center: [initialViewState.longitude, initialViewState.latitude],
-      zoom: initialViewState.zoom,
-      attributionControl: false,
-      logoPosition: "bottom-right",
-      pitchWithRotate: false,
-      dragRotate: false,
-      minZoom: 2,
-      maxZoom: 18,
-      fadeDuration: 0, // Reduce fade duration for faster appearance
-      preserveDrawingBuffer: true, // This helps with some flickering issues
-    });
-
-    mapInstance.current = map;
-    globalMapInstance = map;
-
-    // Store the map instance on the container element for easy retrieval
-    if (containerRef) {
-      containerRef.__mbMap = map;
-    }
-
-    // Also store on window for global access
-    if (typeof window !== "undefined") {
-      window.mapboxgl = window.mapboxgl || {};
-      window.mapboxgl.map = map;
-    }
-
-    // Once the map is loaded, we're done
-    map.on("load", () => {
-      setIsLoaded(true);
-      onLoad?.();
-    });
-
-    // Clean up only if we're removing the map entirely
+    // Cleanup function
     return () => {
-      // We only remove the map if the container is removed from the DOM
-      if (containerRef && !document.contains(containerRef)) {
-        console.log("Removing map instance");
-        if (mapInstance.current) {
-          mapInstance.current.remove();
-          mapInstance.current = null;
+      // Only clean up if the container is being removed from DOM
+      if (!document.contains(container)) {
+        console.log("🧹 Container removed, cleaning up map");
+        if (mapInstance.current && mapInstance.current === globalMapInstance) {
+          globalMapInstance.remove();
           globalMapInstance = null;
+          isMapInitialized = false;
+          mapLoadPromise = null;
 
           if (typeof window !== "undefined" && window.mapboxgl) {
             window.mapboxgl.map = null;
           }
         }
+        mapInstance.current = null;
       }
     };
-  }, [initialViewState, onLoad, mapStyle]);
+  }, [initialViewState, onLoad, isInitializing]);
 
-  // Handle window resize to update the map
+  // Handle resize
   useEffect(() => {
     const handleResize = () => {
-      if (mapInstance.current) {
+      if (mapInstance.current && !mapInstance.current._removed) {
         mapInstance.current.resize();
       }
     };
 
     window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
