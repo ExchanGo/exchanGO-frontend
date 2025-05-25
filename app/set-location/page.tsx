@@ -23,6 +23,7 @@ import { FloatingLabelInput } from "@/components/ui/FloatingLabelInput";
 import { Loader } from "@/components/ui/Loader";
 import { RegistrationSuccessModal } from "@/components/modals/RegistrationSuccessModal";
 import { useModalStore } from "@/store/useModalStore";
+import { LocationSearchSkeleton } from "@/components/ui/LocationSearchSkeleton";
 
 // Define MapboxHTMLElement interface
 interface MapboxHTMLElement extends HTMLDivElement {
@@ -1053,7 +1054,7 @@ function MapContent({
       </div>
 
       {/* Location search below the map but in the same context */}
-      {isMapLoaded && <LocationSearch />}
+      {isMapLoaded ? <LocationSearch /> : <LocationSearchSkeleton />}
     </>
   );
 }
