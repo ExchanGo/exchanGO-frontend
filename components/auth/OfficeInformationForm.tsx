@@ -74,11 +74,8 @@ export default function OfficeInformationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [showOtherNumber, setShowOtherNumber] = useState(false);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("+212");
-  const [otherCountryCode, setOtherCountryCode] = useState("+121");
   const [primaryPhone, setPrimaryPhone] = useState("");
   const [otherPhone, setOtherPhone] = useState("");
-  const [phone, setPhone] = useState<Value | undefined>(undefined);
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -115,16 +112,6 @@ export default function OfficeInformationForm() {
     setOtherPhone(value);
     // Store the raw phone value
     updateFormData("otherNumber", value || "");
-  };
-
-  const handleCountryCodeChange = (value: string) => {
-    setSelectedCountryCode(value);
-    updateFormData("primaryPhone", value + " " + primaryPhone);
-  };
-
-  const handleOtherCountryCodeChange = (value: string) => {
-    setOtherCountryCode(value);
-    updateFormData("otherNumber", value + " " + otherPhone);
   };
 
   const validateForm = () => {

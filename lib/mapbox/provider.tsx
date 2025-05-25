@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl, { StyleSpecification } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/context/map-context";
-import Loader from "@/components/shared/Loader";
 import dynamic from "next/dynamic";
 
 // Declare global window interface extension
