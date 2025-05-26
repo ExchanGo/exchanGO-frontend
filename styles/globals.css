@@ -325,12 +325,23 @@
     
     /* Smooth transitions for map container resizing */
     [data-map-container] {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
       will-change: width, height, transform !important;
       transform: translateZ(0) !important;
+      contain: layout style paint !important; /* Optimize rendering */
     }
-   
     
+    /* Optimize motion.div elements for better performance */
+    [data-framer-motion-layout-id] {
+      will-change: transform !important;
+      transform: translateZ(0) !important;
+      contain: layout !important;
+    }
+    
+    /* Prevent layout thrashing during animations */
+    .motion-section {
+      contain: layout style !important;
+      will-change: transform !important;
+    }
 }
 
 /* Keyframes for accordion animations */

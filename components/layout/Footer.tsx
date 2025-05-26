@@ -1,9 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { useMapStore } from "@/store/map";
+import { cn } from "@/lib/utils";
 
 export const Footer = () => {
+  const isMapMaximized = useMapStore((state) => state.isMapMaximized);
+
   return (
-    <div className="flex flex-col w-full items-start gap-2.5 px-4 sm:px-8 md:px-16 lg:px-20 xl:px-[149px] py-[60px] relative">
+    <div
+      className={cn(
+        "flex flex-col w-full items-start gap-2.5 px-4 sm:px-8 md:px-16 lg:px-20 xl:px-[149px] py-[60px] relative transition-all duration-300",
+        isMapMaximized && "-z-10"
+      )}
+    >
       <div className="relative w-full z-20">
         <div className="flex flex-col lg:flex-row w-full gap-16 lg:gap-28 xl:gap-43">
           {/* Logo and Contact Section */}

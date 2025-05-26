@@ -20,6 +20,7 @@ declare global {
     mapboxgl?: {
       map?: mapboxgl.Map | null;
     };
+    mapResizeTimeout?: NodeJS.Timeout;
   }
 }
 
@@ -69,40 +70,85 @@ export default function Search() {
     setMapMaximized(false);
   }, [setMapMaximized]);
 
+  // Add animation sync for better map resize timing
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    const mapInstance =
+      mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
+    if (!mapInstance) return;
+
+    // Sync map resize with animation timing
+    const animationDuration = 250; // 0.25s in ms
+    const resizeSteps = [0, animationDuration * 0.5, animationDuration]; // Resize at start, middle, and end
+
+    resizeSteps.forEach((delay) => {
+      setTimeout(() => {
+        try {
+          if (mapInstance && !mapInstance._removed) {
+            mapInstance.resize();
+            console.log(`🔄 Animation sync resize at ${delay}ms`);
+          }
+        } catch (error) {
+          console.warn(`Animation sync resize failed at ${delay}ms:`, error);
+        }
+      }, delay);
+    });
+  }, [isMapMaximized]);
+
   // Effect to handle map resize when the container dimensions change
   useEffect(() => {
     if (!mapContainerRef.current || typeof window === "undefined") return;
 
-    // When map container size changes, trigger a resize event for Mapbox
+    // Create a more robust resize handler
     const resizeMap = () => {
-      // Safely access the map instance
       const mapInstance =
         mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
       if (mapInstance && typeof mapInstance.resize === "function") {
         try {
-          // Use requestAnimationFrame to ensure DOM has updated
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              try {
-                mapInstance.resize();
-                console.log("🔄 Map resized for container change");
-              } catch (error) {
-                console.warn("Map resize failed:", error);
-              }
-            });
-          });
+          // Force immediate resize without waiting
+          mapInstance.resize();
+          console.log("🔄 Map resized immediately");
+
+          // Add a second resize after a short delay to ensure it's properly sized
+          setTimeout(() => {
+            try {
+              mapInstance.resize();
+              console.log("🔄 Map resize confirmed");
+            } catch (error) {
+              console.warn("Secondary map resize failed:", error);
+            }
+          }, 50);
         } catch (error) {
-          console.warn("Map resize setup failed:", error);
+          console.warn("Map resize failed:", error);
         }
       }
     };
 
-    // Use a longer delay for production to ensure animations complete
-    const timeoutId = setTimeout(() => {
-      resizeMap();
-    }, 350); // Increased from 50ms to 350ms to match animation duration
+    // Use ResizeObserver for better performance and immediate detection
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // Debounce rapid resize events
+        clearTimeout(window.mapResizeTimeout);
+        window.mapResizeTimeout = setTimeout(() => {
+          resizeMap();
+        }, 16); // ~60fps
+      }
+    });
 
-    return () => clearTimeout(timeoutId);
+    // Observe the map container
+    const mapContainer = mapContainerRef.current;
+    if (mapContainer) {
+      resizeObserver.observe(mapContainer);
+    }
+
+    // Also trigger resize immediately when maximization state changes
+    resizeMap();
+
+    return () => {
+      resizeObserver.disconnect();
+      clearTimeout(window.mapResizeTimeout);
+    };
   }, [isMapMaximized, navbarHeight]);
 
   // Handle map load and initialization
@@ -114,13 +160,27 @@ export default function Search() {
 
     console.log("🗺️ Map loaded successfully");
 
-    // Apply any additional map initialization
+    // Apply performance optimizations
     const mapInstance =
       mapContainerRef.current?.__mbMap || window.mapboxgl?.map;
     if (mapInstance) {
-      // Optimize for performance
+      // Optimize for better animation performance
       mapInstance.setTerrain(null); // Disable terrain for better performance
       mapInstance.setPitch(0); // Start with flat view for faster rendering
+
+      // Add performance optimizations for smoother animations
+      try {
+        // Disable unnecessary features during animations
+        mapInstance.setLayoutProperty("background", "visibility", "visible");
+
+        // Optimize rendering for animations
+        mapInstance.getCanvas().style.willChange = "transform";
+        mapInstance.getCanvasContainer().style.willChange = "transform";
+
+        console.log("🚀 Map performance optimizations applied");
+      } catch (error) {
+        console.warn("Some performance optimizations failed:", error);
+      }
     }
   };
 
@@ -155,16 +215,20 @@ export default function Search() {
         {/* Right Section - Map */}
         <motion.section
           className={cn(
-            "col-span-4 max-md:col-span-1 block",
+            "col-span-4 max-md:col-span-1 block motion-section",
             isMapMaximized && "col-span-12"
           )}
           layout
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{
+            duration: 0.25,
+            ease: [0.25, 0.1, 0.25, 1], // Custom cubic-bezier for smoother animation
+            layout: { duration: 0.25 },
+          }}
         >
           <motion.div
             className={cn(
-              "sticky w-full max-md:relative max-md:h-[300px] transition-all duration-300",
-              isMapMaximized && "fixed inset-x-0 z-50 !top-[125px]"
+              "sticky w-full max-md:relative max-md:h-[300px]",
+              isMapMaximized && "fixed inset-x-0 z-[9999]"
             )}
             style={{
               top: !isMapMaximized
@@ -179,10 +243,15 @@ export default function Search() {
                 : "calc(100vh - 125px)",
             }}
             layout
+            transition={{
+              duration: 0.25,
+              ease: [0.25, 0.1, 0.25, 1],
+              layout: { duration: 0.25 },
+            }}
           >
             <motion.div
               className={cn(
-                "w-full h-full transition-all duration-300 overflow-hidden shadow-l-lg",
+                "w-full h-full overflow-hidden shadow-l-lg",
                 isMapMaximized && "overflow-hidden"
               )}
               style={{
@@ -194,6 +263,11 @@ export default function Search() {
               }}
               layout
               data-map-container
+              transition={{
+                duration: 0.25,
+                ease: [0.25, 0.1, 0.25, 1],
+                layout: { duration: 0.25 },
+              }}
             >
               {/* Map placeholder for faster initial rendering */}
               {!mapLoaded && (
