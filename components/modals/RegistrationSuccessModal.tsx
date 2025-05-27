@@ -68,7 +68,7 @@ export function RegistrationSuccessModal({
         >
           <div className="relative w-[140px] h-[140px]">
             <Image
-              src="/img/sucess-register.png"
+              src="/svg/sucess-register.svg"
               alt="sucess-register"
               fill
               style={{ objectFit: "contain" }}
