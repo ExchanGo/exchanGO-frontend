@@ -10,7 +10,7 @@ const benefits = [
     icon: TimeCompare,
     title: "Real-Time Rate Comparison",
     description:
-      "Compare exchange rates from multiple money changers in your area instantly.",
+      "Compare exchange rates from multiple money changers in one view.",
   },
   {
     icon: Nearby,
@@ -35,13 +35,13 @@ const BenefitsSection = () => {
       <div className="w-full max-w-7xl mx-auto px-4 mt-16">
         <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="md:w-1/2 mb-10 md:mb-0 md:pr-12">
-            <span className="text-[var(--color-greeny)] text-sm font-bold">
+            <span className="text-[var(--color-greeny)] text-base font-medium text-dm">
               The Best Reasons to
             </span>
             <Typography
               variant="h2"
               fontFamily="dm"
-              className="text-[32px] max-w-[454px] text-black md:text-4xl font-bold mt-2 mb-4"
+              className="text-2xl max-w-[454px] text-black md:text-[32px]  font-bold mt-2 mb-4"
             >
               Rely on Us for Transparent Exchange
             </Typography>
@@ -49,59 +49,59 @@ const BenefitsSection = () => {
               fontFamily="dm"
               className="text-lg text-[#585858] mb-6 max-w-[350px]"
             >
-              Don&apos;t waste time visiting exchange offices. Find the best
-              rates in seconds.
+              Searching for a great rate shouldn’t be stressful. ExchanGo24
+              gives you a clear, instant view of all your options nearby.
             </Typography>
 
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center gap-4 mb-6">
-                <Image
-                  src={benefit.icon}
-                  alt={benefit.title}
-                  width={64}
-                  height={64}
-                  className="w-16 h-16"
-                  priority={index < 2} // Prioritize loading first 2 icons
-                  loading={index < 2 ? "eager" : "lazy"}
-                  quality={75}
-                />
-                <div className="flex flex-col">
-                  <Typography
-                    variant="h3"
-                    fontFamily="dm"
-                    className="font-bold text-xl text-black"
-                  >
-                    {benefit.title}
-                  </Typography>
-                  <Typography
-                    fontFamily="dm"
-                    className="text-[#585858] text-lg"
-                  >
-                    {benefit.description}
-                  </Typography>
+            <div className="max-w-[450px]">
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-center gap-6 mb-6">
+                  <Image
+                    src={benefit.icon}
+                    alt={benefit.title}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16"
+                    priority={index < 2} // Prioritize loading first 2 icons
+                    loading={index < 2 ? "eager" : "lazy"}
+                    quality={75}
+                  />
+                  <div className="flex flex-col">
+                    <Typography
+                      variant="h3"
+                      fontFamily="dm"
+                      className="font-bold text-xl text-black"
+                    >
+                      {benefit.title}
+                    </Typography>
+                    <Typography
+                      fontFamily="dm"
+                      className="text-[#585858] text-lg"
+                    >
+                      {benefit.description}
+                    </Typography>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div className="md:w-1/2 relative">
             <Image
               src="/img/benefits-down.png"
               alt="Exchange service demonstration"
-              width={600}
+              width={559}
               height={644}
-              className="w-full rounded-lg"
-              style={{ maxWidth: "500px", objectFit: "contain" }}
+              className="w-[559px] h-[644px] rounded-lg"
               quality={90}
               priority
             />
             <Image
               src="/img/benefits-up.png"
               alt="Exchange service demonstration"
-              width={230}
-              height={172}
-              className="absolute top-35 right-10 shadow-image"
-              style={{ maxWidth: "230px", objectFit: "contain" }}
+              width={244}
+              height={331}
+              className="absolute w-[244px] h-[331px] top-35 -right-3.5 shadow-image"
               quality={90}
             />
           </div>
