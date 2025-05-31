@@ -23,7 +23,11 @@ const HeroSection = () => {
               fontFamily="jakarta"
               size="hero"
               weight="extrabold"
-              className="text-white mb-6 drop-shadow-xl"
+              className="text-white mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
+              style={{
+                textShadow:
+                  "1px 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(0, 0, 0, 0.2)",
+              }}
             >
               Your Money
               <br />
