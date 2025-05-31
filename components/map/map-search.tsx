@@ -31,9 +31,11 @@ import useDebounce from "@/lib/hooks/useDebounce";
 import { LocationMarker } from "./location-marker";
 import { LocationPopup } from "./location-popup";
 import { AnimatePresence, motion } from "framer-motion";
+import { useMapStore } from "@/store/map";
 
 export default function MapSearch() {
   const { map } = useMap();
+  const isMapMaximized = useMapStore((state) => state.isMapMaximized);
   const [query, setQuery] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [results, setResults] = useState<LocationSuggestion[]>([]);
@@ -550,6 +552,32 @@ export default function MapSearch() {
       location.properties.mapbox_id === selectedLocation.properties.mapbox_id
     );
   };
+
+  // Early return if map is not maximized
+  if (!isMapMaximized) {
+    return (
+      <>
+        {/* Still render markers and popup even when search is hidden */}
+        {selectedLocations.map((location) => (
+          <LocationMarker
+            key={location.properties.mapbox_id}
+            location={location}
+            onHover={(data) => setSelectedLocation(data)}
+            isSelected={isLocationSelected(location)}
+          />
+        ))}
+
+        <AnimatePresence>
+          {selectedLocation && (
+            <LocationPopup
+              location={selectedLocation}
+              onClose={() => setSelectedLocation(null)}
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
   return (
     <>

@@ -53,7 +53,7 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
       onClose={onClose}
       offset={40}
       closeButton={true}
-      closeOnClick={false}
+      closeOnClick={true}
       className="location-popup"
       focusAfterOpen={false}
     >
