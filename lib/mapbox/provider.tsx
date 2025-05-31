@@ -75,10 +75,44 @@ const applyColorsToLayers = (map: mapboxgl.Map) => {
         if (layer.type === "background" && layer.id === "background") {
           map.setPaintProperty(layer.id, "background-color", LAND_COLOR);
         }
+
+        // Hide specific Morocco-Western Sahara border only
+        if (
+          layer.type === "line" &&
+          (layer.id.includes("admin") || layer.id.includes("boundary")) &&
+          (layer.id.includes("disputed") ||
+            layer.source === "composite" ||
+            layer["source-layer"] === "admin")
+        ) {
+          // Add a filter to hide only the Morocco-Western Sahara border
+          // This targets the specific administrative level and region
+          try {
+            const existingFilter = map.getFilter(layer.id) || ["all"];
+            const newFilter = [
+              "all",
+              existingFilter,
+              [
+                "!=",
+                ["get", "iso_3166_1"],
+                "EH", // Western Sahara ISO code
+              ],
+              ["!=", ["get", "name"], "Western Sahara"],
+              ["!=", ["get", "name_en"], "Western Sahara"],
+            ];
+            map.setFilter(layer.id, newFilter);
+          } catch (filterError) {
+            // If filtering fails, try to hide the layer for disputed territories only
+            if (layer.id.includes("disputed") || layer.id.includes("ehsah")) {
+              map.setLayoutProperty(layer.id, "visibility", "none");
+            }
+          }
+        }
       });
     }
 
-    console.log("🎨 Applied custom map colors");
+    console.log(
+      "🎨 Applied custom map colors and removed Morocco-Western Sahara border"
+    );
   } catch (error) {
     console.warn("Failed to apply custom colors:", error);
   }

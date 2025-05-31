@@ -4,6 +4,7 @@ import { LocationFeature } from "@/lib/mapbox/utils";
 import Marker from "./map-marker";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useState } from "react";
 // import { useMap } from "@/context/map-context";
 
 interface LocationMarkerProps {
@@ -17,7 +18,7 @@ export function LocationMarker({
   onHover,
   isSelected = false,
 }: LocationMarkerProps) {
-  // const { map } = useMap();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Marker
@@ -28,50 +29,148 @@ export function LocationMarker({
         onHover(data);
       }}
     >
-      {/* {location.rate && ( */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
-        transition={{ duration: 0.2 }}
-        className="flex flex-col items-center mb-2"
+        className="flex flex-col items-center"
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
       >
-        <div
-          className={`rounded-md px-1 shadow-lg font-medium relative z-10 transition-all duration-200 ${
-            isSelected ? "bg-[#111111] text-white" : "bg-white text-black"
-          }`}
+        {/* Price tag with smooth animations */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{
+            opacity: 1,
+            y: isHovered ? -2 : 0,
+            scale: isHovered ? 1.02 : 1,
+          }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{
+            duration: 0.3,
+            ease: "easeOut",
+          }}
+          className="flex flex-col items-center mb-3"
         >
-          <span
-            className={`text-[10px] ${
-              isSelected ? "text-white" : "text-primary-600"
-            }`}
+          <motion.div
+            animate={{
+              backgroundColor: isSelected
+                ? "#111111"
+                : isHovered
+                ? "#20523C"
+                : "#ffffff",
+              color: isSelected || isHovered ? "#ffffff" : "#000000",
+              boxShadow: isHovered
+                ? "0 6px 20px rgba(32, 82, 60, 0.25)"
+                : "0 2px 8px rgba(0, 0, 0, 0.1)",
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut",
+            }}
+            className="rounded-md px-2 py-1 font-medium relative z-10"
           >
-            RP16520
-          </span>
-          <div
-            className={`absolute left-1/2 -bottom-1 -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-t-6 border-l-transparent border-r-transparent ${
-              isSelected ? "border-t-[#111111]" : "border-t-white"
-            }`}
+            <motion.span
+              animate={{
+                color: isSelected || isHovered ? "#ffffff" : "#20523C",
+              }}
+              transition={{ duration: 0.3 }}
+              className="text-xs font-bold"
+            >
+              RP16520
+            </motion.span>
+            <motion.div
+              animate={{
+                borderTopColor: isSelected
+                  ? "#111111"
+                  : isHovered
+                  ? "#20523C"
+                  : "#ffffff",
+              }}
+              transition={{ duration: 0.3 }}
+              className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent"
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Marker circle with enhanced animations */}
+        <motion.div
+          animate={{
+            scale: isSelected ? 1.1 : isHovered ? 1.05 : 1,
+            backgroundColor: isSelected
+              ? "#3BEE5C"
+              : isHovered
+              ? "#20523C"
+              : "#ffffff",
+            boxShadow: isSelected
+              ? "0 8px 25px rgba(59, 238, 92, 0.3)"
+              : isHovered
+              ? "0 6px 20px rgba(32, 82, 60, 0.25)"
+              : "0 4px 12px rgba(0, 0, 0, 0.15)",
+          }}
+          transition={{
+            duration: 0.3,
+            ease: "easeOut",
+            scale: {
+              type: "spring",
+              stiffness: 300,
+              damping: 25,
+            },
+          }}
+          className="rounded-full flex items-center justify-center p-1 size-12 cursor-pointer relative overflow-hidden"
+        >
+          {/* Subtle glow effect */}
+          <motion.div
+            animate={{
+              opacity: isHovered || isSelected ? 0.4 : 0,
+              scale: isHovered || isSelected ? 1.2 : 1,
+            }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: isSelected
+                ? "radial-gradient(circle, rgba(59, 238, 92, 0.3) 0%, transparent 70%)"
+                : "radial-gradient(circle, rgba(32, 82, 60, 0.3) 0%, transparent 70%)",
+            }}
           />
-        </div>
+
+          {/* Image with smooth scaling */}
+          <motion.div
+            animate={{
+              scale: isHovered ? 1.1 : 1,
+              rotate: isHovered ? [0, 2, -2, 0] : 0,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+              rotate: {
+                duration: 0.6,
+                ease: "easeInOut",
+              },
+            }}
+            className="relative z-10 w-full h-full flex items-center justify-center"
+          >
+            <motion.div
+              animate={{
+                filter:
+                  isSelected || isHovered
+                    ? "brightness(1.1) saturate(1.05)"
+                    : "brightness(1) saturate(1)",
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <Image
+                src={
+                  isSelected
+                    ? "/svg/marker-selected.svg"
+                    : "/svg/logo-marker-map.svg"
+                }
+                alt="Map pin"
+                width={80}
+                height={80}
+                className="w-full h-full object-contain"
+              />
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </motion.div>
-      {/* )} */}
-      <div
-        className={`rounded-full flex items-center justify-center transform transition-all duration-200 ${
-          isSelected ? "bg-[#3BEE5C]" : "bg-white"
-        } p-0.5 text-white shadow-lg size-8 cursor-pointer hover:scale-110 ${
-          isSelected ? "scale-110" : ""
-        }`}
-      >
-        <Image
-          src={
-            isSelected ? "/svg/marker-selected.svg" : "/svg/logo-marker-map.svg"
-          }
-          alt="Map pin"
-          width={58}
-          height={58}
-        />
-      </div>
     </Marker>
   );
 }
