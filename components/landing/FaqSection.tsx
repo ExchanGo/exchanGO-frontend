@@ -2,7 +2,6 @@
 
 import {
   Accordion,
-  AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -12,28 +11,16 @@ import Wrapper from "../shared/wrapper";
 import SectionBadge from "../ui/section-badge";
 import Image from "next/image";
 import { Typography } from "@/components/ui/typography";
-import { motion, AnimatePresence } from "framer-motion";
-
-const contentVariants = {
-  closed: {
-    opacity: 0,
-    height: 0,
-    transition: {
-      duration: 0.3,
-      ease: "easeInOut",
-    },
-  },
-  open: {
-    opacity: 1,
-    height: "auto",
-    transition: {
-      duration: 0.3,
-      ease: "easeInOut",
-    },
-  },
-};
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 const FaqSection = () => {
+  const [openItem, setOpenItem] = useState<string | null>(null);
+
+  const handleValueChange = (value: string) => {
+    setOpenItem(value === openItem ? null : value);
+  };
+
   return (
     <div className="relative overflow-hidden min-h-[800px]">
       <div className="absolute right-0 w-full h-full">
@@ -77,99 +64,122 @@ const FaqSection = () => {
         </div>
 
         <div className="max-w-3xl mx-auto pt-10 relative z-10">
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            {FAQS.map((item, index) => (
-              <AnimationContainer
-                key={index}
-                animation="fadeUp"
-                delay={0.5 + index * 0.1}
-              >
-                <motion.div
-                  initial="closed"
-                  animate="closed"
-                  whileHover={{
-                    scale: 1.005,
-                    transition: {
-                      duration: 0.2,
-                      ease: "easeOut",
-                    },
-                  }}
-                  style={{
-                    transformOrigin: "center",
-                    backfaceVisibility: "hidden", // Prevent flickering
-                  }}
+          <div className="w-full space-y-4">
+            {FAQS.map((item, index) => {
+              const itemValue = `item-${index}`;
+              const isOpen = openItem === itemValue;
+
+              return (
+                <AnimationContainer
+                  key={index}
+                  animation="fadeUp"
+                  delay={0.5 + index * 0.1}
                 >
-                  <AccordionItem
-                    value={`item-${index}`}
-                    className="group bg-white/95 backdrop-blur-[2px] rounded-2xl px-6 border border-[#DEDEDE] transition-all duration-300 data-[state=open]:border-transparent data-[state=open]:shadow-[0px_8px_30px_rgba(32,82,60,0.08)]"
+                  <motion.div
+                    initial={{ scale: 1 }}
+                    whileHover={{
+                      scale: 1.005,
+                      transition: { duration: 0.2, ease: "easeOut" },
+                    }}
+                    animate={{
+                      borderColor: isOpen ? "transparent" : "#DEDEDE",
+                      boxShadow: isOpen
+                        ? "0px 8px 30px rgba(32,82,60,0.08)"
+                        : "0px 0px 0px rgba(32,82,60,0)",
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="bg-white/95 backdrop-blur-[2px] rounded-2xl px-6 border border-[#DEDEDE] overflow-hidden cursor-pointer"
+                    onClick={() => handleValueChange(itemValue)}
                   >
-                    <AccordionTrigger className="hover:no-underline pt-6 text-left text-black font-normal data-[state=closed]:pb-6 data-[state=open]:pb-2 group-data-[state=open]:text-[var(--color-greeny-bold)] transition-all duration-300">
+                    {/* Question Header */}
+                    <div className="flex items-center justify-between py-6">
                       <motion.div
-                        initial={false}
-                        whileHover={{
-                          scale: 1.01,
-                          transition: { duration: 0.2, ease: "easeOut" },
+                        animate={{
+                          color: isOpen
+                            ? "var(--color-greeny-bold)"
+                            : "#111111",
                         }}
-                        style={{
-                          transformOrigin: "center",
-                          backfaceVisibility: "hidden",
-                        }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="flex-1 pr-4"
                       >
                         <Typography
                           variant="h4"
-                          className="font-dm font-medium text-[#111111] text-[20px] leading-[1.4] group-data-[state=open]:text-[var(--color-greeny-bold)] transition-colors duration-300"
+                          className="font-dm font-medium text-[20px] leading-[1.4] text-left"
                         >
                           {item.question}
                         </Typography>
                       </motion.div>
-                    </AccordionTrigger>
-                    <AccordionContent className="overflow-hidden text-[#585858] text-left">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={`accordion-content-${index}`}
-                          variants={contentVariants}
-                          initial="closed"
-                          animate="open"
-                          exit="closed"
-                          className="pb-6"
-                          style={{
-                            transformOrigin: "top",
-                            backfaceVisibility: "hidden",
-                          }}
+
+                      {/* Custom Arrow */}
+                      <motion.div
+                        animate={{
+                          rotate: isOpen ? 180 : 0,
+                          color: isOpen
+                            ? "var(--color-greeny-bold)"
+                            : "#666666",
+                        }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="flex-shrink-0 w-5 h-5 flex items-center justify-center"
+                      >
+                        <svg
+                          width="12"
+                          height="8"
+                          viewBox="0 0 12 8"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{
-                              opacity: 1,
-                              y: 0,
-                              transition: {
-                                duration: 0.3,
-                                ease: "easeOut",
-                                delay: 0.1,
-                              },
-                            }}
-                            exit={{
-                              opacity: 0,
-                              transition: {
-                                duration: 0.2,
-                                ease: "easeIn",
-                              },
-                            }}
-                            style={{
-                              transformOrigin: "top",
-                              backfaceVisibility: "hidden",
-                            }}
-                          >
-                            {item.answer}
-                          </motion.div>
-                        </motion.div>
-                      </AnimatePresence>
-                    </AccordionContent>
-                  </AccordionItem>
-                </motion.div>
-              </AnimationContainer>
-            ))}
-          </Accordion>
+                          <path
+                            d="M1 1.5L6 6.5L11 1.5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </motion.div>
+                    </div>
+
+                    {/* Answer Content */}
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        height: isOpen ? "auto" : 0,
+                        opacity: isOpen ? 1 : 0,
+                      }}
+                      transition={{
+                        height: {
+                          duration: 0.4,
+                          ease: [0.04, 0.62, 0.23, 0.98],
+                        },
+                        opacity: {
+                          duration: 0.25,
+                          ease: "easeInOut",
+                          delay: isOpen ? 0.1 : 0,
+                        },
+                      }}
+                      className="overflow-hidden"
+                    >
+                      <motion.div
+                        initial={false}
+                        animate={{
+                          y: isOpen ? 0 : -8,
+                          opacity: isOpen ? 1 : 0,
+                        }}
+                        transition={{
+                          duration: 0.3,
+                          ease: "easeOut",
+                          delay: isOpen ? 0.15 : 0,
+                        }}
+                        className="text-[#585858] text-left pb-6"
+                      >
+                        {item.answer}
+                      </motion.div>
+                    </motion.div>
+                  </motion.div>
+                </AnimationContainer>
+              );
+            })}
+          </div>
         </div>
       </Wrapper>
     </div>

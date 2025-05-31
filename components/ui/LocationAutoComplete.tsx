@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import {
-  MapPin,
+  ChevronDown,
   LocateFixed,
   CheckCircle2,
   XCircle,
@@ -150,23 +150,6 @@ export function LocationAutoComplete({
           className="flex items-center w-full h-full py-2 px-0 relative z-10"
           onClick={() => setIsOpen(true)}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isHovered ? "hovered" : "not-hovered"}
-              initial={{ opacity: 0.8 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0.8 }}
-              className="flex-shrink-0 mr-2"
-            >
-              {prefixIcon || (
-                <MapPin
-                  className={cn("h-5 w-5", prefixIconClassName)}
-                  color="#292D32"
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
-
           <div
             className="truncate flex-grow text-base text-[#585858] px-2 pointer-events-none select-none"
             tabIndex={0}
@@ -180,16 +163,33 @@ export function LocationAutoComplete({
             )}
           </div>
 
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex-shrink-0"
-          >
-            <LocateFixed
-              className={cn("h-5 w-5", iconClassName)}
-              color="#292D32"
-            />
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isHovered ? "hovered" : "not-hovered"}
+              initial={{ opacity: 0.8 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0.8 }}
+              className="flex-shrink-0 mr-2"
+            >
+              {prefixIcon || (
+                <motion.div
+                  animate={{
+                    rotate: isHovered ? 2 : 0,
+                    scale: isHovered ? 1.05 : 1,
+                  }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "h-5 w-5 transition-colors duration-200",
+                      prefixIconClassName
+                    )}
+                    color={isHovered ? "var(--color-greeny)" : "#292D32"}
+                  />
+                </motion.div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </motion.div>
 
