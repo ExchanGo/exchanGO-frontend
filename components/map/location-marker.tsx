@@ -114,7 +114,7 @@ export function LocationMarker({
               damping: 25,
             },
           }}
-          className="rounded-full flex items-center justify-center p-1 size-12 cursor-pointer relative overflow-hidden"
+          className="rounded-full flex items-center justify-center p-1 size-[40px] cursor-pointer relative overflow-hidden"
         >
           {/* Subtle glow effect */}
           <motion.div

@@ -6,11 +6,13 @@ import Image from "next/image";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
 import { useState } from "react";
 import { openModal } from "@/store/modals";
+import { motion } from "framer-motion";
 
 type LocationPopupProps = {
   location: LocationFeature;
   onClose?: () => void;
 };
+
 export function LocationPopup({ location, onClose }: LocationPopupProps) {
   const [selectValue, setSelectValue] = useState("");
 
@@ -19,11 +21,6 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
   const { properties, geometry } = location;
 
   const name = properties?.name || "Unknown Location";
-  // const address = properties?.full_address || properties?.address || "";
-  // const categories = properties?.poi_category || [];
-  // const brand = properties?.brand?.[0] || "";
-  // const status = properties?.operational_status || "";
-  // const maki = properties?.maki || "";
 
   const lat = geometry?.coordinates?.[1] || properties?.coordinates?.latitude;
   const lng = geometry?.coordinates?.[0] || properties?.coordinates?.longitude;
@@ -44,132 +41,156 @@ export function LocationPopup({ location, onClose }: LocationPopupProps) {
         },
       });
     } else if (value === "call") {
-      // Example: open tel: link
       window.open("tel:+1234567890");
     }
-    // Reset select value after action
     setSelectValue("");
   };
+
   return (
     <Popup
       latitude={lat}
       longitude={lng}
       onClose={onClose}
-      offset={28}
+      offset={40}
       closeButton={true}
       closeOnClick={false}
       className="location-popup"
       focusAfterOpen={false}
     >
-      <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border min-w-60 w-[221px]">
-        <div className="overflow-hidden w-full text-xs font-medium leading-tight text-neutral-900">
-          <div className="flex relative flex-col px-3 py-3.5 w-full aspect-[2.3]">
-            <img
-              src={
-                "https://cdn.builder.io/api/v1/image/assets/e0b0e015be8841d68e922a989572049c/e9f1840681e65187d02abf6f65958b364feba223?placeholderIfAbsent=true"
-              }
-              alt={`${name} office`}
-              className="object-cover absolute inset-0 size-full"
-            />
-          </div>
+      <motion.article
+        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+        transition={{
+          duration: 0.2,
+          ease: "easeOut",
+        }}
+        className="overflow-hidden bg-white rounded-lg border shadow-lg w-[190px]"
+      >
+        {/* Compact image header */}
+        <div className="relative w-full h-16 overflow-hidden">
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets/e0b0e015be8841d68e922a989572049c/e9f1840681e65187d02abf6f65958b364feba223?placeholderIfAbsent=true"
+            alt={`${name} office`}
+            className="object-cover w-full h-full"
+          />
         </div>
-        <div className="flex flex-col justify-center w-full p-4">
-          <div className="flex relative justify-between w-full mb-2">
-            <div className="flex gap-0.5 justify-center items-center p-1 bg-white rounded border border-[#DEDEDE]">
-              <span className="self-stretch inline-flex items-center gap-1 my-auto">
-                <Timer className="w-4 h-4" />
-                🔥 Popular Exchange
-              </span>
-            </div>
-            <div className="flex gap-0.5 justify-center items-center p-1 whitespace-nowrap bg-white rounded border border-[#DEDEDE]">
-              <span className="self-stretch inline-flex items-center gap-1 my-auto">
-                {" "}
-                <Timer className="w-4 h-4" />
-                Open
-              </span>
-            </div>
+
+        {/* Content section */}
+        <div className="p-3">
+          {/* Status badges */}
+          <div className="flex justify-between gap-1 mb-2">
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-50 rounded text-orange-700 border border-orange-200"
+            >
+              <Timer className="w-3 h-3" />
+              <span className="text-xs font-medium">🔥 Popular</span>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              className="flex items-center gap-1 px-1.5 py-0.5 bg-green-50 rounded text-green-700 border border-green-200"
+            >
+              <Timer className="w-3 h-3" />
+              <span className="text-xs font-medium">Open</span>
+            </motion.div>
           </div>
-          <div className="w-full min-h-[191px]">
-            <div className="w-full h-[103px]">
-              <div className="w-full">
-                <h3 className="text-base text-neutral-900">Atlas Exchange</h3>
-                <p className="mt-1 text-xl font-bold text-neutral-900">
-                  RP16520
-                </p>
-                <div className="mt-3 w-60 max-w-full text-sm text-zinc-600">
-                  <p className="leading-5">
-                    4140 Parker Rd. Allentown, New Mexico 31134
-                  </p>
-                  <p className="mt-1 leading-snug">07:00 - 20:00</p>
-                </div>
-              </div>
+
+          {/* Main content */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h3 className="text-sm font-semibold text-neutral-900 mb-1">
+              Atlas Exchange
+            </h3>
+            <p className="text-lg font-bold text-neutral-900 mb-2">RP16520</p>
+
+            <div className="text-xs text-zinc-600 mb-3 space-y-0.5">
+              <p className="leading-tight">
+                4140 Parker Rd. Allentown, New Mexico 31134
+              </p>
+              <p className="leading-tight">07:00 - 20:00</p>
             </div>
-            <div className="flex gap-3 items-center mt-11 w-full min-h-[46px] max-md:mt-10">
-              <Button
-                variant="outline"
-                size="xl"
-                className="flex-1 shrink gap-2.5 self-stretch px-6 py-3 my-auto text-base font-medium leading-snug text-green-900 rounded-md border border-green-900 border-solid basis-0 max-md:px-5"
+          </motion.div>
+
+          {/* Action buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="flex gap-2 items-center"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs font-medium text-green-900 border-green-900 hover:bg-green-50 h-8 px-3"
+            >
+              Get Direction
+            </Button>
+
+            <Select value={selectValue} onValueChange={handleSelectAction}>
+              <SelectTrigger
+                hideIcon
+                className="flex items-center justify-center h-8 w-8 p-1 rounded border border-green-900 bg-white hover:bg-green-50 focus:ring-0 focus:ring-offset-0 outline-none transition-colors"
               >
-                Get Direction
-              </Button>
-              <Select value={selectValue} onValueChange={handleSelectAction}>
-                <SelectTrigger
-                  hideIcon
-                  className="flex gap-2.5 items-center h-12 cursor-pointer self-stretch p-2 my-auto rounded-md border border-green-900 border-solid w-[46px] bg-white focus:ring-0 focus:ring-offset-0 outline-none"
+                <Image
+                  src="/svg/more.svg"
+                  alt="more icon"
+                  width={16}
+                  height={16}
+                  priority
+                  className="w-4 h-4"
+                />
+              </SelectTrigger>
+              <SelectContent className="rounded-lg shadow-lg bg-white border border-gray-100 min-w-[160px] py-1">
+                <SelectItem
+                  value="rate-alert"
+                  noCheckIcon
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-medium cursor-pointer hover:bg-gray-50 rounded-t-lg"
                 >
-                  <Image
-                    src="/svg/more.svg"
-                    alt="more icon"
-                    width={24}
-                    height={24}
-                    priority
-                    className="w-full h-6"
-                  />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl shadow-lg bg-white border border-gray-100 min-w-[220px] py-2">
-                  <SelectItem
-                    value="rate-alert"
-                    noCheckIcon
-                    className="inline-flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-t-xl"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/svg/rate-alert.svg"
-                        alt="rate alert icon"
-                        width={20}
-                        height={20}
-                        priority
-                        className="w-5 h-5 opacity-80"
-                      />
-                      <span>Rate Alert</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem
-                    value="share"
-                    noCheckIcon
-                    className="flex items-center gap-2 px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="w-5 h-5 opacity-70" />
-                      <span>Share this Exchange</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem
-                    value="call"
-                    noCheckIcon
-                    className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-b-xl"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-5 h-5 opacity-70" />
-                      <span>Call Atlas exchange ( Mobile )</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src="/svg/rate-alert.svg"
+                      alt="rate alert icon"
+                      width={14}
+                      height={14}
+                      priority
+                      className="w-3.5 h-3.5 opacity-80"
+                    />
+                    <span>Rate Alert</span>
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="share"
+                  noCheckIcon
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-medium cursor-pointer hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <span>Share Exchange</span>
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="call"
+                  noCheckIcon
+                  className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-gray-50 rounded-b-lg"
+                >
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 opacity-70" />
+                    <span>Call Exchange</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </motion.div>
         </div>
-      </article>
+      </motion.article>
     </Popup>
   );
 }
