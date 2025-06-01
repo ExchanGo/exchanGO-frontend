@@ -5,38 +5,20 @@ import { useState, useRef, useEffect } from "react";
 import { MapPin, CheckCircle2, XCircle, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useDebounce from "@/lib/hooks/useDebounce";
+import { useCitiesData } from "@/lib/hooks/useCitiesData";
+import { useSetSelectedLocation } from "@/store/useCitiesStore";
 import { cn } from "@/lib/utils";
 
-// Default cities for Morocco
-const defaultCities = [
-  { value: "casablanca", label: "Casablanca" },
-  { value: "rabat", label: "Rabat" },
-  { value: "marrakech", label: "Marrakech" },
-  { value: "fes", label: "Fès" },
-  { value: "tangier", label: "Tanger" },
-  { value: "agadir", label: "Agadir" },
-  { value: "meknes", label: "Meknès" },
-  { value: "oujda", label: "Oujda" },
-  { value: "kenitra", label: "Kénitra" },
-  { value: "tetouan", label: "Tétouan" },
-  { value: "safi", label: "Safi" },
-  { value: "mohammedia", label: "Mohammedia" },
-  { value: "el-jadida", label: "El Jadida" },
-  { value: "beni-mellal", label: "Béni Mellal" },
-  { value: "nador", label: "Nador" },
-  { value: "taza", label: "Taza" },
-  { value: "settat", label: "Settat" },
-  { value: "larache", label: "Larache" },
-];
-
+// Keep the interface for backward compatibility
 export interface LocationOption {
   value: string;
   label: string;
+  id?: string;
 }
 
 interface FloatingLocationAutoCompleteProps {
   defaultValue?: string;
-  locations?: LocationOption[];
+  locations?: LocationOption[]; // Keep for backward compatibility, but will be overridden by API data
   onLocationChange?: (value: string) => void;
   placeholder?: string;
   label?: string;
@@ -47,7 +29,7 @@ interface FloatingLocationAutoCompleteProps {
 
 export function FloatingLocationAutoComplete({
   defaultValue = "",
-  locations = defaultCities,
+  locations, // This will be ignored in favor of API data
   onLocationChange,
   placeholder = "Search for a location...",
   label = "Location",
@@ -65,19 +47,32 @@ export function FloatingLocationAutoComplete({
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Filter locations based on search query
-  const filteredLocations = React.useMemo(() => {
-    if (!debouncedSearchQuery) return locations;
+  // Use the new cities data hook
+  const {
+    cities,
+    isLoading,
+    error: apiError,
+  } = useCitiesData({
+    searchQuery: debouncedSearchQuery,
+    enableSearch: true,
+  });
 
-    return locations.filter((location) =>
+  // Zustand actions (using individual selector)
+  const setSelectedLocation = useSetSelectedLocation();
+
+  // Filter locations based on search query (local filtering for better UX)
+  const filteredLocations = React.useMemo(() => {
+    if (!debouncedSearchQuery) return cities;
+
+    return cities.filter((location) =>
       location.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     );
-  }, [debouncedSearchQuery, locations]);
+  }, [debouncedSearchQuery, cities]);
 
   // Format display value
   const getDisplayValue = () => {
     if (!selectedValue) return "";
-    const location = locations.find((city) => city.value === selectedValue);
+    const location = cities.find((city) => city.value === selectedValue);
     return location ? `${location.label} - Morocco` : "";
   };
 
@@ -90,10 +85,16 @@ export function FloatingLocationAutoComplete({
 
   // Handle selection change
   const handleSelect = (value: string) => {
+    const selectedLocationData = cities.find((city) => city.value === value);
     setSelectedValue(value);
     setSearchQuery("");
     setIsOpen(false);
     setIsFocused(false);
+
+    // Update Zustand store
+    setSelectedLocation(value, selectedLocationData);
+
+    // Call the callback
     onLocationChange?.(value);
   };
 
@@ -205,10 +206,6 @@ export function FloatingLocationAutoComplete({
         </div>
       </motion.div>
 
-      {error && (
-        <div className="mt-1 text-xs text-red-500 font-dm">{error}</div>
-      )}
-
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -216,7 +213,7 @@ export function FloatingLocationAutoComplete({
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="absolute top-full left-0 w-max mt-1 z-50 rounded-lg bg-white shadow-md overflow-hidden"
+            className="absolute top-full left-0 w-full mt-1 z-50 rounded-lg bg-white shadow-md overflow-hidden"
           >
             <div className="p-2 border-b flex items-center gap-2">
               <Search className="h-4 w-4 text-[var(--color-greeny)]" />
@@ -245,7 +242,29 @@ export function FloatingLocationAutoComplete({
             </div>
 
             <div className="max-h-[300px] overflow-y-auto p-1">
-              {filteredLocations.length === 0 ? (
+              {isLoading ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-8 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-greeny)]"></div>
+                    <p className="text-sm font-dm">Loading cities...</p>
+                  </div>
+                </motion.div>
+              ) : apiError ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-8 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2 text-red-400">
+                    <XCircle className="h-8 w-8" />
+                    <p className="text-sm font-dm">Failed to load cities</p>
+                  </div>
+                </motion.div>
+              ) : filteredLocations.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -264,18 +283,22 @@ export function FloatingLocationAutoComplete({
                       initial={{ opacity: 0, x: -5 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2 }}
-                      onClick={() => handleSelect(location.value)}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 cursor-pointer rounded-md",
-                        "hover:bg-[var(--color-lite-soft)] transition-colors duration-100",
-                        selectedValue === location.value
-                          ? "bg-[var(--color-lite-soft)]"
-                          : ""
+                        "flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer hover:bg-[var(--color-lite-soft)] transition-colors",
+                        location.value === selectedValue &&
+                          "bg-[var(--color-lite-soft)]"
                       )}
+                      onClick={() => handleSelect(location.value)}
                     >
                       <div className="flex items-center w-full justify-between select-none">
-                        <span className="text-sm font-dm">
-                          {location.label} - Morocco
+                        <span
+                          className={cn(
+                            "font-medium font-dm",
+                            location.value === selectedValue &&
+                              "text-[var(--color-greeny-bold)]"
+                          )}
+                        >
+                          {location.label}
                         </span>
                         {location.value === selectedValue && (
                           <motion.div
@@ -300,6 +323,17 @@ export function FloatingLocationAutoComplete({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Error message */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-xs mt-1 font-dm"
+        >
+          {error}
+        </motion.p>
+      )}
     </div>
   );
 }

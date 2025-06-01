@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import "../styles/globals.css";
 import { Footer } from "@/components/layout/Footer";
+import { QueryProvider } from "@/lib/providers/QueryProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -56,9 +57,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${plusJakarta.variable}`}>
       <body className="font-sans antialiased min-h-screen flex flex-col">
-        {/* <Navbar /> */}
-        <main className="flex-grow">{children}</main>
-        <Footer />
+        <QueryProvider>
+          {/* <Navbar /> */}
+          <main className="flex-grow">{children}</main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );

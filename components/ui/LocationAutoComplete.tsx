@@ -11,38 +11,20 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useDebounce from "@/lib/hooks/useDebounce";
+import { useCitiesData } from "@/lib/hooks/useCitiesData";
+import { useSetSelectedLocation } from "@/store/useCitiesStore";
 import { cn } from "@/lib/utils";
 
-// Default cities for Morocco
-const defaultCities = [
-  { value: "casablanca", label: "Casablanca" },
-  { value: "rabat", label: "Rabat" },
-  { value: "marrakech", label: "Marrakech" },
-  { value: "fes", label: "Fès" },
-  { value: "tangier", label: "Tanger" },
-  { value: "agadir", label: "Agadir" },
-  { value: "meknes", label: "Meknès" },
-  { value: "oujda", label: "Oujda" },
-  { value: "kenitra", label: "Kénitra" },
-  { value: "tetouan", label: "Tétouan" },
-  { value: "safi", label: "Safi" },
-  { value: "mohammedia", label: "Mohammedia" },
-  { value: "el-jadida", label: "El Jadida" },
-  { value: "beni-mellal", label: "Béni Mellal" },
-  { value: "nador", label: "Nador" },
-  { value: "taza", label: "Taza" },
-  { value: "settat", label: "Settat" },
-  { value: "larache", label: "Larache" },
-];
-
+// Keep the interface for backward compatibility
 export interface LocationOption {
   value: string;
   label: string;
+  id?: string;
 }
 
 interface LocationAutoCompleteProps {
   defaultValue?: string;
-  locations?: LocationOption[];
+  locations?: LocationOption[]; // Keep for backward compatibility, but will be overridden by API data
   onLocationChange?: (value: string) => void;
   placeholder?: string;
   prefixIcon?: React.ReactNode;
@@ -53,7 +35,7 @@ interface LocationAutoCompleteProps {
 
 export function LocationAutoComplete({
   defaultValue = "rabat",
-  locations = defaultCities,
+  locations, // This will be ignored in favor of API data
   onLocationChange,
   placeholder = "Search for a location...",
   prefixIcon,
@@ -70,19 +52,28 @@ export function LocationAutoComplete({
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Filter locations based on search query
-  const filteredLocations = React.useMemo(() => {
-    if (!debouncedSearchQuery) return locations;
+  // Use the new cities data hook
+  const { cities, isLoading, error } = useCitiesData({
+    searchQuery: debouncedSearchQuery,
+    enableSearch: true,
+  });
 
-    return locations.filter((location) =>
+  // Zustand actions (using individual selector)
+  const setSelectedLocation = useSetSelectedLocation();
+
+  // Filter locations based on search query (local filtering for better UX)
+  const filteredLocations = React.useMemo(() => {
+    if (!debouncedSearchQuery) return cities;
+
+    return cities.filter((location) =>
       location.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     );
-  }, [debouncedSearchQuery, locations]);
+  }, [debouncedSearchQuery, cities]);
 
   // Format display value
   const getDisplayValue = () => {
     if (!selectedValue) return "";
-    const location = locations.find((city) => city.value === selectedValue);
+    const location = cities.find((city) => city.value === selectedValue);
     return location ? `${location.label} - Morocco` : "";
   };
 
@@ -95,9 +86,15 @@ export function LocationAutoComplete({
 
   // Handle selection change
   const handleSelect = (value: string) => {
+    const selectedLocationData = cities.find((city) => city.value === value);
     setSelectedValue(value);
     setSearchQuery("");
     setIsOpen(false);
+
+    // Update Zustand store
+    setSelectedLocation(value, selectedLocationData);
+
+    // Call the callback
     onLocationChange?.(value);
   };
 
@@ -229,7 +226,29 @@ export function LocationAutoComplete({
             </div>
 
             <div className="max-h-[300px] overflow-y-auto p-1">
-              {filteredLocations.length === 0 ? (
+              {isLoading ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-8 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-greeny)]"></div>
+                    <p className="text-sm font-dm">Loading cities...</p>
+                  </div>
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-8 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2 text-red-400">
+                    <XCircle className="h-8 w-8" />
+                    <p className="text-sm font-dm">Failed to load cities</p>
+                  </div>
+                </motion.div>
+              ) : filteredLocations.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
