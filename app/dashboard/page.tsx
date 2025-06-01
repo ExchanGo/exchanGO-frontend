@@ -177,13 +177,10 @@ export default function DashboardPage() {
           >
             {/* Page Title */}
             <div className="mb-8">
-              <Typography
-                variant="h1"
-                fontFamily="dm"
-                className="text-3xl font-bold text-gray-900 mb-2"
-              >
+              <h2 className="text-3xl font-bold text-gray-900 font-dm mb-2">
                 Exchange Leadboard
-              </Typography>
+              </h2>
+
               <Typography variant="p" fontFamily="dm" className="text-gray-600">
                 Manage exchange rates with precision. Update rates in real-time
                 to ensure transparency and competitiveness in the market.
