@@ -77,6 +77,12 @@ export function LocationAutoComplete({
     return location ? `${location.label} - Morocco` : "";
   };
 
+  // Check if we have a valid selected location
+  const hasValidSelection = () => {
+    if (!selectedValue) return false;
+    return cities.some((city) => city.value === selectedValue);
+  };
+
   // Ensure selectedValue is updated when defaultValue changes
   useEffect(() => {
     if (defaultValue) {
@@ -148,10 +154,10 @@ export function LocationAutoComplete({
           onClick={() => setIsOpen(true)}
         >
           <div
-            className="truncate flex-grow text-base text-[#585858] px-2 pointer-events-none select-none"
+            className="truncate flex-grow text-base text-[#585858] px-0 pointer-events-none select-none"
             tabIndex={0}
           >
-            {selectedValue ? (
+            {hasValidSelection() ? (
               <span className="font-medium truncate block font-dm select-none">
                 {getDisplayValue()}
               </span>

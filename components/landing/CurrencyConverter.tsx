@@ -56,6 +56,7 @@ const CurrencyConverter = () => {
         <LocationAutoComplete
           defaultValue={location}
           onLocationChange={handleLocationChange}
+          placeholder="Casablanca - Morocco"
           // label="Location"
           iconClassName="text-[#292D32]"
         />

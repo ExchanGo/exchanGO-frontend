@@ -64,33 +64,47 @@ The `QueryProvider` is already added to your root layout (`app/layout.tsx`).
 
 ## 📖 API Documentation
 
-### Cities API Endpoint
+### Cities API Endpoints
+
+#### 1. Get All Cities
 
 ```
 GET https://exchango.opineomanager.com/api/v1/cities
 ```
 
-**Note**: This endpoint returns all cities at once. There is no search parameter - filtering is done client-side for better performance.
+**Usage**: Initial load and fallback when no search query is provided.
 
-**Response Format:**
+#### 2. Search Cities
+
+```
+GET https://exchango.opineomanager.com/api/v1/cities/search?name={searchQuery}
+```
+
+**Usage**: Search for cities by name with server-side filtering.
+
+**Parameters**:
+
+- `name` (string): The search query (minimum 2 characters for optimization)
+
+**Example**:
+
+```
+GET https://exchango.opineomanager.com/api/v1/cities/search?name=rabat
+```
+
+**Response Format** (both endpoints):
 
 ```json
 {
   "data": [
     {
-      "id": "d4039d73-b926-4b8f-9e09-aed0645aca78",
-      "name": "afourar",
-      "createdAt": "2025-05-28T06:53:06.246Z",
-      "updatedAt": "2025-05-28T06:53:06.246Z"
-    },
-    {
-      "id": "f98e04a0-3662-4b64-86ad-7dec5cef8f0a",
-      "name": "agadir",
+      "id": "996c7edb-411e-4eab-8cd4-5648df25a692",
+      "name": "rabat",
       "createdAt": "2025-05-28T06:53:06.246Z",
       "updatedAt": "2025-05-28T06:53:06.246Z"
     }
   ],
-  "hasNextPage": true
+  "hasNextPage": false
 }
 ```
 
@@ -217,20 +231,27 @@ function ZustandExample() {
 
 ## ⚡ Performance Optimizations
 
-### 1. Caching Strategy
+### 1. Smart Endpoint Selection
 
-- **Stale Time**: 10 minutes for all cities (cities don't change frequently)
-- **Cache Time**: 30 minutes for all cities data
+- **All Cities Endpoint**: Used for initial load and when no search query is provided
+- **Search Endpoint**: Used when user searches with 2+ characters
+- **Automatic Switching**: Seamlessly switches between endpoints based on user input
+
+### 2. Debouncing Strategy
+
+- **300ms Debounce**: Search API calls are debounced to prevent excessive requests
+- **Minimum 2 Characters**: Search endpoint only triggers with 2+ characters
+- **Immediate Local Filtering**: Shows instant feedback while debouncing API calls
+- **Configurable Timing**: Debounce delay can be customized per component
+
+### 3. Caching Strategy
+
+- **All Cities**: 10 minutes stale time, 30 minutes cache time
+- **Search Results**: 5 minutes stale time, 10 minutes cache time
 - **Background Refetch**: Enabled on window focus and reconnect
-- **Single API Call**: All cities are fetched once and cached
+- **Query-Specific Caching**: Each search query is cached separately
 
-### 2. Client-Side Filtering
-
-- **Instant Search**: Search filtering is done client-side for immediate results
-- **Debounced Input**: User input is debounced by 300ms to prevent excessive filtering
-- **Memory Efficient**: Filtering is done on already cached data
-
-### 3. Selective Re-renders
+### 4. Selective Re-renders
 
 Zustand store uses selective subscriptions to prevent unnecessary re-renders:
 
@@ -245,7 +266,7 @@ const isLoading = useCitiesLoading();
 const error = useCitiesError();
 ```
 
-### 4. Optimized Data Flow
+### 5. Optimized Data Flow
 
 1. **Initial Load**: `useAllCities()` fetches all cities from `/cities` endpoint and stores them in Zustand
 2. **Caching**: Cities are cached for 30 minutes since they rarely change
@@ -256,12 +277,28 @@ const error = useCitiesError();
 
 ## 🔄 Data Flow
 
-1. **Initial Load**: `useAllCities()` fetches all cities from `/cities` endpoint and stores them in Zustand
-2. **Caching**: Cities are cached for 30 minutes since they rarely change
-3. **Search Input**: User types in search box (debounced by 300ms)
-4. **Client-Side Filtering**: Zustand store filters cached cities instantly based on search query
-5. **UI Updates**: Components subscribe to filtered cities for optimal re-renders
-6. **No Additional API Calls**: All search operations use cached data for instant results
+### Initial Load
+
+1. **App Starts**: `useAllCities()` fetches all cities from `/cities` endpoint
+2. **Store Update**: Cities are stored in Zustand for immediate access
+3. **UI Render**: Components display all available cities
+
+### Search Flow
+
+1. **User Types**: Input is captured in real-time
+2. **Local Filtering**: Immediate feedback for queries < 2 characters
+3. **Debouncing**: 300ms delay before triggering API search
+4. **API Call**: Search endpoint called with debounced query (≥ 2 chars)
+5. **Cache Check**: React Query checks if results are already cached
+6. **Store Update**: Search results replace current cities in Zustand
+7. **UI Update**: Components re-render with filtered results
+
+### Optimization Features
+
+- **Instant Feedback**: Local filtering while waiting for API response
+- **Smart Caching**: Identical queries use cached results
+- **Seamless Switching**: Automatic fallback to all cities when search is cleared
+- **Error Handling**: Graceful fallback to cached data on API errors
 
 ## 🛠️ Error Handling
 

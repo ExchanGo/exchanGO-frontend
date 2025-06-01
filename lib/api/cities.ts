@@ -12,7 +12,7 @@ export interface SearchCitiesResponse {
   hasNextPage: boolean;
 }
 
-// Get all cities from the API
+// Get all cities from the API (for initial load)
 export const getAllCities = async (): Promise<SearchCitiesResponse> => {
   const response = await apiRequest<CitiesResponse>({
     method: 'GET',
@@ -21,34 +21,38 @@ export const getAllCities = async (): Promise<SearchCitiesResponse> => {
 
   return {
     data: response.data,
-    hasNextPage: false, // The API returns all cities at once
+    hasNextPage: response.hasNextPage || false,
   };
 };
 
-// Search cities by name (client-side filtering since API returns all cities)
+// Search cities by name using the search endpoint
 export const searchCitiesByName = async (name: string): Promise<SearchCitiesResponse> => {
-  const allCitiesResponse = await getAllCities();
-  
   if (!name.trim()) {
-    return allCitiesResponse;
+    // If no search query, return all cities
+    return getAllCities();
   }
 
-  // Filter cities by name on the client side
-  const filteredCities = allCitiesResponse.data.filter(city =>
-    city.name.toLowerCase().includes(name.toLowerCase())
-  );
+  const searchParams = new URLSearchParams();
+  searchParams.append('name', name.trim());
+
+  const url = `${API_CONFIG.ENDPOINTS.CITIES_SEARCH}?${searchParams.toString()}`;
+  
+  const response = await apiRequest<SearchCitiesResponse>({
+    method: 'GET',
+    url,
+  });
 
   return {
-    data: filteredCities,
-    hasNextPage: false,
+    data: response.data,
+    hasNextPage: response.hasNextPage || false,
   };
 };
 
-// Legacy function for backward compatibility
+// Generic search function with parameters
 export const searchCities = async (
   params: SearchCitiesParams = {}
 ): Promise<SearchCitiesResponse> => {
-  if (params.name) {
+  if (params.name && params.name.trim()) {
     return searchCitiesByName(params.name);
   }
   return getAllCities();
