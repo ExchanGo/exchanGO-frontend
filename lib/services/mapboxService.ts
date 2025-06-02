@@ -291,6 +291,7 @@ class MapboxLocationService {
         `access_token=${this.accessToken}&` +
         `country=ma&` +
         `types=place,locality,neighborhood,address&` +
+        `language=fr,en&` +
         `limit=1`;
 
       const response = await fetch(url);
