@@ -19,6 +19,7 @@ const CurrencyConverter = () => {
   const [amount, setAmount] = useState("1000");
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState("rabat");
+  const [selectedLocationData, setSelectedLocationData] = useState<any>(null);
   const [sourceCurrency, setSourceCurrency] = useState("USD");
   const [currencySymbol, setCurrencySymbol] = useState("$");
 
@@ -40,9 +41,10 @@ const CurrencyConverter = () => {
     setCurrencySymbol(getCurrencySymbol(sourceCurrency));
   }, [sourceCurrency]);
 
-  const handleLocationChange = (value: string) => {
+  const handleLocationChange = (value: string, locationData?: any) => {
     setLocation(value);
-    console.log("Selected location:", value);
+    setSelectedLocationData(locationData);
+    console.log("Selected location:", value, locationData);
   };
 
   return (
@@ -56,7 +58,6 @@ const CurrencyConverter = () => {
         <LocationAutoComplete
           defaultValue={location}
           onLocationChange={handleLocationChange}
-          placeholder="Casablanca - Morocco"
           // label="Location"
           iconClassName="text-[#292D32]"
         />

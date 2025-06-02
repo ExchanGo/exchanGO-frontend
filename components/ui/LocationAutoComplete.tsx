@@ -8,24 +8,29 @@ import {
   CheckCircle2,
   XCircle,
   Search,
+  MapPin,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useDebounce from "@/lib/hooks/useDebounce";
-import { useCitiesData } from "@/lib/hooks/useCitiesData";
-import { useSetSelectedLocation } from "@/store/useCitiesStore";
 import { cn } from "@/lib/utils";
+import {
+  mapboxLocationService,
+  MapboxLocationResult,
+} from "@/lib/services/mapboxService";
+import { moroccoCities } from "@/lib/data/moroccoCities";
 
-// Keep the interface for backward compatibility
 export interface LocationOption {
   value: string;
   label: string;
-  id?: string;
+  latitude?: number;
+  longitude?: number;
+  region?: string;
 }
 
 interface LocationAutoCompleteProps {
   defaultValue?: string;
-  locations?: LocationOption[]; // Keep for backward compatibility, but will be overridden by API data
-  onLocationChange?: (value: string) => void;
+  onLocationChange?: (value: string, location?: MapboxLocationResult) => void;
   placeholder?: string;
   prefixIcon?: React.ReactNode;
   iconClassName?: string;
@@ -35,9 +40,8 @@ interface LocationAutoCompleteProps {
 
 export function LocationAutoComplete({
   defaultValue = "rabat",
-  locations, // This will be ignored in favor of API data
   onLocationChange,
-  placeholder = "Search for a location...",
+  placeholder = "Search for a location in Morocco...",
   prefixIcon,
   iconClassName,
   prefixIconClassName,
@@ -47,61 +51,143 @@ export function LocationAutoComplete({
   const [isHovered, setIsHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
+  const [selectedLocation, setSelectedLocation] =
+    useState<MapboxLocationResult | null>(null);
+  const [searchResults, setSearchResults] = useState<MapboxLocationResult[]>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Use the new cities data hook
-  const { cities, isLoading, error } = useCitiesData({
-    searchQuery: debouncedSearchQuery,
-    enableSearch: true,
-  });
-
-  // Zustand actions (using individual selector)
-  const setSelectedLocation = useSetSelectedLocation();
-
-  // Filter locations based on search query (local filtering for better UX)
-  const filteredLocations = React.useMemo(() => {
-    if (!debouncedSearchQuery) return cities;
-
-    return cities.filter((location) =>
-      location.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-    );
-  }, [debouncedSearchQuery, cities]);
-
-  // Format display value
-  const getDisplayValue = () => {
-    if (!selectedValue) return "";
-    const location = cities.find((city) => city.value === selectedValue);
-    return location ? `${location.label} - Morocco` : "";
-  };
-
-  // Check if we have a valid selected location
-  const hasValidSelection = () => {
-    if (!selectedValue) return false;
-    return cities.some((city) => city.value === selectedValue);
-  };
-
-  // Ensure selectedValue is updated when defaultValue changes
+  // Initialize with default location
   useEffect(() => {
     if (defaultValue) {
-      setSelectedValue(defaultValue);
+      const defaultCity = moroccoCities.find(
+        (city) => city.value === defaultValue
+      );
+      if (defaultCity) {
+        setSelectedValue(defaultValue);
+        setSelectedLocation({
+          id: defaultCity.value,
+          name: defaultCity.label,
+          place_formatted: `${defaultCity.label}, Morocco`,
+          latitude: defaultCity.latitude,
+          longitude: defaultCity.longitude,
+          region: defaultCity.region,
+          feature_type: "place",
+          maki: "marker",
+        });
+      }
     }
   }, [defaultValue]);
 
+  // Search for locations when query changes
+  useEffect(() => {
+    const searchLocations = async () => {
+      if (!debouncedSearchQuery.trim()) {
+        // Show popular cities when no search query
+        const popularCities = moroccoCities.slice(0, 8);
+        setSearchResults(
+          popularCities.map((city) => ({
+            id: city.value,
+            name: city.label,
+            place_formatted: `${city.label}, Morocco`,
+            latitude: city.latitude,
+            longitude: city.longitude,
+            region: city.region,
+            feature_type: "place",
+            maki: "marker",
+          }))
+        );
+        setError(null);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const results = await mapboxLocationService.searchLocations(
+          debouncedSearchQuery
+        );
+        setSearchResults(results);
+
+        if (results.length === 0) {
+          setError("No locations found. Try a different search term.");
+        }
+      } catch (err) {
+        console.error("Location search error:", err);
+        setError("Search failed. Please try again.");
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    searchLocations();
+  }, [debouncedSearchQuery]);
+
+  // Format display value
+  const getDisplayValue = () => {
+    if (!selectedLocation) return "";
+    return selectedLocation.place_formatted;
+  };
+
   // Handle selection change
-  const handleSelect = (value: string) => {
-    const selectedLocationData = cities.find((city) => city.value === value);
-    setSelectedValue(value);
+  const handleSelect = (location: MapboxLocationResult) => {
+    setSelectedValue(location.id);
+    setSelectedLocation(location);
     setSearchQuery("");
     setIsOpen(false);
+    onLocationChange?.(location.id, location);
+  };
 
-    // Update Zustand store
-    setSelectedLocation(value, selectedLocationData);
+  // Handle current location
+  const handleCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by this browser.");
+      return;
+    }
 
-    // Call the callback
-    onLocationChange?.(value);
+    setIsLoading(true);
+    setError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const location = await mapboxLocationService.reverseGeocode(
+            latitude,
+            longitude
+          );
+
+          if (location) {
+            handleSelect(location);
+          } else {
+            setError("Could not determine your location.");
+          }
+        } catch (err) {
+          console.error("Reverse geocoding error:", err);
+          setError("Failed to get your location.");
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setError("Failed to access your location.");
+        setIsLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
   };
 
   // Click outside handler to close dropdown
@@ -125,6 +211,25 @@ export function LocationAutoComplete({
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Show initial results when opening
+  useEffect(() => {
+    if (isOpen && searchResults.length === 0 && !searchQuery.trim()) {
+      const popularCities = moroccoCities.slice(0, 8);
+      setSearchResults(
+        popularCities.map((city) => ({
+          id: city.value,
+          name: city.label,
+          place_formatted: `${city.label}, Morocco`,
+          latitude: city.latitude,
+          longitude: city.longitude,
+          region: city.region,
+          feature_type: "place",
+          maki: "marker",
+        }))
+      );
+    }
+  }, [isOpen, searchQuery, searchResults.length]);
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
@@ -154,10 +259,10 @@ export function LocationAutoComplete({
           onClick={() => setIsOpen(true)}
         >
           <div
-            className="truncate flex-grow text-base text-[#585858] px-0 pointer-events-none select-none"
+            className="truncate flex-grow text-base text-[#585858] px-2 pointer-events-none select-none"
             tabIndex={0}
           >
-            {hasValidSelection() ? (
+            {selectedLocation ? (
               <span className="font-medium truncate block font-dm select-none">
                 {getDisplayValue()}
               </span>
@@ -203,17 +308,18 @@ export function LocationAutoComplete({
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="absolute top-full left-0 w-full mt-1 z-50 rounded-lg bg-white shadow-md overflow-hidden"
+            className="absolute top-full left-0 w-full mt-1 z-50 rounded-lg bg-white shadow-lg border overflow-hidden"
           >
-            <div className="p-2 border-b flex items-center gap-2">
+            {/* Search Input */}
+            <div className="p-3 border-b flex items-center gap-2">
               <Search className="h-4 w-4 text-[var(--color-greeny)]" />
               <input
                 ref={inputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search location..."
-                className="flex-1 h-10 w-full py-3 text-sm bg-transparent outline-none placeholder:text-gray-400 font-dm"
+                placeholder="Search cities in Morocco..."
+                className="flex-1 h-8 w-full py-1 text-sm bg-transparent outline-none placeholder:text-gray-400 font-dm"
               />
               {searchQuery && (
                 <AnimatePresence>
@@ -231,79 +337,106 @@ export function LocationAutoComplete({
               )}
             </div>
 
+            {/* Current Location Button */}
+            <div className="px-3 py-2 border-b">
+              <button
+                onClick={handleCurrentLocation}
+                disabled={isLoading}
+                className="flex items-center gap-2 w-full text-left text-sm text-[var(--color-greeny)] hover:text-[var(--color-greeny-bold)] transition-colors disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LocateFixed className="h-4 w-4" />
+                )}
+                <span className="font-dm">Use my current location</span>
+              </button>
+            </div>
+
+            {/* Results */}
             <div className="max-h-[300px] overflow-y-auto p-1">
-              {isLoading ? (
+              {error ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="py-8 text-center"
+                  className="py-6 text-center"
                 >
-                  <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-greeny)]"></div>
-                    <p className="text-sm font-dm">Loading cities...</p>
+                  <div className="flex flex-col items-center justify-center gap-2 text-red-500">
+                    <XCircle className="h-6 w-6" />
+                    <p className="text-sm font-dm">{error}</p>
                   </div>
                 </motion.div>
-              ) : error ? (
+              ) : isLoading ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="py-8 text-center"
-                >
-                  <div className="flex flex-col items-center justify-center gap-2 text-red-400">
-                    <XCircle className="h-8 w-8" />
-                    <p className="text-sm font-dm">Failed to load cities</p>
-                  </div>
-                </motion.div>
-              ) : filteredLocations.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="py-8 text-center"
+                  className="py-6 text-center"
                 >
                   <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
-                    <XCircle className="h-8 w-8" />
+                    <Loader2 className="h-6 w-6 animate-spin text-[var(--color-greeny)]" />
+                    <p className="text-sm font-dm">Searching locations...</p>
+                  </div>
+                </motion.div>
+              ) : searchResults.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-6 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
+                    <XCircle className="h-6 w-6" />
                     <p className="text-sm font-dm">No results found.</p>
                   </div>
                 </motion.div>
               ) : (
                 <div className="py-1">
-                  {filteredLocations.map((location) => (
+                  {searchResults.map((location) => (
                     <motion.div
-                      key={location.value}
+                      key={location.id}
                       initial={{ opacity: 0, x: -5 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2 }}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer hover:bg-[var(--color-lite-soft)] transition-colors",
-                        location.value === selectedValue &&
+                        "flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer hover:bg-[var(--color-lite-soft)] transition-colors",
+                        selectedLocation?.id === location.id &&
                           "bg-[var(--color-lite-soft)]"
                       )}
-                      onClick={() => handleSelect(location.value)}
+                      onClick={() => handleSelect(location)}
                     >
-                      <div className="flex items-center w-full justify-between select-none">
-                        <span
-                          className={cn(
-                            "font-medium font-dm",
-                            location.value === selectedValue &&
-                              "text-[var(--color-greeny-bold)]"
+                      <MapPin className="h-4 w-4 text-[var(--color-greeny)] flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={cn(
+                                "font-medium font-dm truncate",
+                                selectedLocation?.id === location.id &&
+                                  "text-[var(--color-greeny-bold)]"
+                              )}
+                            >
+                              {location.name}
+                            </p>
+                            {location.region && (
+                              <p className="text-xs text-gray-500 truncate">
+                                {location.region}
+                              </p>
+                            )}
+                          </div>
+                          {selectedLocation?.id === location.id && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 30,
+                              }}
+                              className="text-[var(--color-greeny)] flex-shrink-0 ml-2"
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </motion.div>
                           )}
-                        >
-                          {location.label}
-                        </span>
-                        {location.value === selectedValue && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 30,
-                            }}
-                            className="text-[var(--color-greeny)]"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </motion.div>
-                        )}
+                        </div>
                       </div>
                     </motion.div>
                   ))}

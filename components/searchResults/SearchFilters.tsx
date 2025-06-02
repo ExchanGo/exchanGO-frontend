@@ -1,51 +1,36 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { LocateFixed, Loader2 } from "lucide-react";
-import { FloatingSelectCurrency } from "../ui/floating-select-currency";
-import Image from "next/image";
-import { Button } from "../ui/button";
-import DualCurrencySelector from "../ui/DualCurrencySelector";
+import React, { useState, useRef } from "react";
+import { FloatingLocationAutoComplete } from "../ui/FloatingLocationAutoComplet";
 import { FloatingAmountInput } from "../ui/FloatingAmountInput";
-import {
-  FloatingLocationAutoComplete,
-  LocationOption,
-} from "../ui/FloatingLocationAutoComplet";
-
-// Default cities for Morocco
-const defaultCities: LocationOption[] = [
-  { value: "casablanca", label: "Casablanca" },
-  { value: "rabat", label: "Rabat" },
-  { value: "marrakech", label: "Marrakech" },
-  { value: "fes", label: "Fès" },
-  { value: "tangier", label: "Tanger" },
-  { value: "agadir", label: "Agadir" },
-  { value: "meknes", label: "Meknès" },
-  { value: "oujda", label: "Oujda" },
-  { value: "kenitra", label: "Kénitra" },
-  { value: "tetouan", label: "Tétouan" },
-  { value: "safi", label: "Safi" },
-  { value: "mohammedia", label: "Mohammedia" },
-  { value: "el-jadida", label: "El Jadida" },
-  { value: "beni-mellal", label: "Béni Mellal" },
-  { value: "nador", label: "Nador" },
-  { value: "taza", label: "Taza" },
-  { value: "settat", label: "Settat" },
-  { value: "larache", label: "Larache" },
-];
+import { FloatingSelectCurrency } from "../ui/floating-select-currency";
+import DualCurrencySelector from "../ui/DualCurrencySelector";
+import { Button } from "../ui/button";
+import { LocateFixed, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { MapboxLocationResult } from "@/lib/services/mapboxService";
 
 export const SearchFilters: React.FC = () => {
   const [sourceCurrency, setSourceCurrency] = useState("USD");
   const [isLocating, setIsLocating] = useState(false);
-  const [currentLocationValue, setCurrentLocationValue] = useState("");
-  const [locationOptions, setLocationOptions] =
-    useState<LocationOption[]>(defaultCities);
+  const [selectedLocation, setSelectedLocation] =
+    useState<MapboxLocationResult | null>(null);
   const [locationKey, setLocationKey] = useState(0); // Force re-render
   const lastLocationCallRef = useRef<number>(0); // Track last call time
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
     console.log("Selected currencies:", currencies);
+  };
+
+  const handleLocationChange = (
+    value: string,
+    location?: MapboxLocationResult
+  ) => {
+    if (location) {
+      setSelectedLocation(location);
+      console.log("Selected location:", location);
+    }
   };
 
   // Function to trigger the locate-fixed button on map controls
@@ -156,12 +141,8 @@ export const SearchFilters: React.FC = () => {
               <FloatingLocationAutoComplete
                 key={locationKey}
                 label="Location"
-                placeholder="Central park"
-                defaultValue={currentLocationValue}
-                locations={locationOptions}
-                onLocationChange={(value: string) =>
-                  console.log("New location:", value)
-                }
+                placeholder="Search cities in Morocco"
+                onLocationChange={handleLocationChange}
               />
             </div>
             <div className="self-stretch pt-2 my-auto w-[157px]">
