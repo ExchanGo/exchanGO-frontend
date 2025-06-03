@@ -13,6 +13,7 @@ import { getCurrencySymbol } from "@/lib/data/currencySymbols";
 import { Separator } from "../ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { motion, AnimatePresence } from "framer-motion";
+import { exchangeService } from "@/lib/services/exchangeService";
 
 const CurrencyConverter = () => {
   const router = useRouter();
@@ -21,18 +22,100 @@ const CurrencyConverter = () => {
   const [location, setLocation] = useState("rabat");
   const [selectedLocationData, setSelectedLocationData] = useState<any>(null);
   const [sourceCurrency, setSourceCurrency] = useState("USD");
+  const [targetCurrency, setTargetCurrency] = useState("MAD");
   const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCheckRates = () => {
+  const handleCheckRates = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setError(null);
+
+    try {
+      // Validate that we have location data
+      if (
+        !selectedLocationData ||
+        !selectedLocationData.latitude ||
+        !selectedLocationData.longitude
+      ) {
+        throw new Error("Please select a valid location first");
+      }
+
+      console.log("Selected location data:", selectedLocationData);
+      console.log("Selected currencies:", {
+        from: sourceCurrency,
+        to: targetCurrency,
+      });
+
+      let response;
+
+      try {
+        // First, try the simple API call (like your original curl - without currency parameters)
+        console.log("Trying simple API call without currency parameters...");
+        response = await exchangeService.getNearbyOfficesSimple(
+          selectedLocationData.latitude,
+          selectedLocationData.longitude,
+          10 // 10km radius
+        );
+        console.log("Simple API call succeeded!");
+      } catch (simpleError) {
+        console.log(
+          "Simple API call failed, trying with currency parameters...",
+          simpleError
+        );
+
+        // If simple call fails, try with currency parameters
+        const requestParams = {
+          latitude: selectedLocationData.latitude,
+          longitude: selectedLocationData.longitude,
+          radiusInKm: 10,
+          targetCurrency: targetCurrency,
+          baseCurrency: sourceCurrency,
+        };
+
+        // Validate parameters
+        const validationErrors =
+          exchangeService.validateNearbyOfficesRequest(requestParams);
+        if (validationErrors.length > 0) {
+          throw new Error(validationErrors.join(", "));
+        }
+
+        response = await exchangeService.getNearbyOffices(requestParams);
+      }
+
+      console.log("Final API Response:", response);
+
+      // Store the search results in sessionStorage or a global state
+      // This will be used by the search results page
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("searchResults", JSON.stringify(response));
+        sessionStorage.setItem(
+          "searchParams",
+          JSON.stringify({
+            location: selectedLocationData,
+            amount: amount,
+            sourceCurrency: sourceCurrency,
+            targetCurrency: targetCurrency,
+          })
+        );
+      }
+
+      // Redirect to search results page
       router.push("/search");
-    }, 3000);
+    } catch (error) {
+      console.error("Error checking rates:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while checking rates"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
+    setTargetCurrency(currencies.to);
     console.log("Selected currencies:", currencies);
   };
 
@@ -44,6 +127,7 @@ const CurrencyConverter = () => {
   const handleLocationChange = (value: string, locationData?: any) => {
     setLocation(value);
     setSelectedLocationData(locationData);
+    setError(null); // Clear any previous errors when location changes
     console.log("Selected location:", value, locationData);
   };
 
@@ -191,11 +275,21 @@ const CurrencyConverter = () => {
           size="lg"
           className="leading-snug"
           style={{ fontFamily: "var(--font-dm-sans)" }}
+          disabled={isLoading}
         >
           <Clock className="h-5 w-5 text-[var(--color-greeny)]" />
-          Check Rates
+          {isLoading ? "Checking..." : "Check Rates"}
         </Button>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="absolute top-full left-0 right-0 mt-2 mx-24">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        </div>
+      )}
 
       {isLoading && <Loader />}
     </div>
