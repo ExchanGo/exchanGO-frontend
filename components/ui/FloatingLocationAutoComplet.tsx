@@ -29,6 +29,7 @@ export interface LocationOption {
 
 interface FloatingLocationAutoCompleteProps {
   defaultValue?: string;
+  selectedLocationProp?: MapboxLocationResult | null;
   onLocationChange?: (value: string, location?: MapboxLocationResult) => void;
   placeholder?: string;
   label?: string;
@@ -39,6 +40,7 @@ interface FloatingLocationAutoCompleteProps {
 
 export function FloatingLocationAutoComplete({
   defaultValue = "",
+  selectedLocationProp,
   onLocationChange,
   placeholder = "Search for a location in Morocco...",
   label = "Location",
@@ -52,7 +54,7 @@ export function FloatingLocationAutoComplete({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
   const [selectedLocation, setSelectedLocation] =
-    useState<MapboxLocationResult | null>(null);
+    useState<MapboxLocationResult | null>(selectedLocationProp || null);
   const [searchResults, setSearchResults] = useState<MapboxLocationResult[]>(
     []
   );
@@ -84,6 +86,14 @@ export function FloatingLocationAutoComplete({
       }
     }
   }, [defaultValue]);
+
+  // Handle external location prop changes
+  useEffect(() => {
+    if (selectedLocationProp) {
+      setSelectedLocation(selectedLocationProp);
+      setSelectedValue(selectedLocationProp.id);
+    }
+  }, [selectedLocationProp]);
 
   // Search for locations when query changes
   useEffect(() => {

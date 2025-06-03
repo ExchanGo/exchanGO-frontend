@@ -8,7 +8,10 @@ import DualCurrencySelector from "../ui/DualCurrencySelector";
 import { Button } from "../ui/button";
 import { LocateFixed, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { MapboxLocationResult } from "@/lib/services/mapboxService";
+import {
+  MapboxLocationResult,
+  mapboxLocationService,
+} from "@/lib/services/mapboxService";
 
 export const SearchFilters: React.FC = () => {
   const [sourceCurrency, setSourceCurrency] = useState("USD");
@@ -88,7 +91,7 @@ export const SearchFilters: React.FC = () => {
 
   // Function to handle current location
   const handleUseCurrentLocation = async () => {
-    // Debounce: prevent calls within 1 second of each other (reduced from 2 seconds)
+    // Debounce: prevent calls within 1 second of each other
     const now = Date.now();
     if (now - lastLocationCallRef.current < 1000) {
       console.log("⚠️ Location request debounced - too soon since last call");
@@ -105,30 +108,77 @@ export const SearchFilters: React.FC = () => {
     setIsLocating(true);
 
     try {
-      // Trigger the map's locate button - this will always center on user location
-      const mapLocateTriggered = triggerMapLocateButton();
+      // Check if geolocation is supported
+      if (!navigator.geolocation) {
+        throw new Error("Geolocation is not supported by this browser.");
+      }
 
-      if (mapLocateTriggered) {
-        console.log("✅ Map locate button triggered successfully");
+      console.log("📍 Getting current location...");
 
-        // Shorter wait time since we're just centering, not toggling tracking
-        setTimeout(() => {
-          console.log("📍 Map centered on your location");
-        }, 500);
+      // Get current position
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000, // 5 minutes
+          });
+        }
+      );
+
+      const { latitude, longitude } = position.coords;
+      console.log(`📍 Current coordinates: ${latitude}, ${longitude}`);
+
+      // Reverse geocode to get location details
+      const location = await mapboxLocationService.reverseGeocode(
+        latitude,
+        longitude
+      );
+
+      if (location) {
+        console.log("✅ Location found:", location);
+
+        // Update the FloatingLocationAutoComplete component
+        setSelectedLocation(location);
+
+        // Force re-render of the FloatingLocationAutoComplete component
+        setLocationKey((prev) => prev + 1);
+
+        // Trigger the callback
+        handleLocationChange(location.id, location);
+
+        // Also trigger the map locate button to center the map
+        triggerMapLocateButton();
+
+        console.log("📍 Location updated successfully");
       } else {
-        console.log("⚠️ Could not trigger map locate button");
-        alert(
-          "Could not center map on your location. Please try clicking the locate button on the map directly."
-        );
+        throw new Error("Could not determine your location from coordinates.");
       }
     } catch (error) {
-      console.error("❌ Error centering map on location:", error);
-      alert("Error accessing your location. Please try again.");
+      console.error("❌ Error getting current location:", error);
+
+      let errorMessage = "Error accessing your location. Please try again.";
+
+      if (error instanceof GeolocationPositionError) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage =
+              "Location access denied. Please enable location permissions.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
     } finally {
-      // Reset loading state after a shorter delay
-      setTimeout(() => {
-        setIsLocating(false);
-      }, 1000);
+      setIsLocating(false);
     }
   };
 
@@ -142,6 +192,7 @@ export const SearchFilters: React.FC = () => {
                 key={locationKey}
                 label="Location"
                 placeholder="Search cities in Morocco"
+                selectedLocationProp={selectedLocation}
                 onLocationChange={handleLocationChange}
               />
             </div>

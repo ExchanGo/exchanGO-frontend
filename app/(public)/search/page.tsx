@@ -199,11 +199,7 @@ export default function Search() {
             >
               <SearchFilters />
               <div className="mx-8 mt-6">
-                <ResultsHeader
-                  count={8}
-                  location="Morocco"
-                  lastUpdate="Just now"
-                />
+                <ResultsHeader />
                 <div className="pb-10">
                   <ResultsList />
                 </div>

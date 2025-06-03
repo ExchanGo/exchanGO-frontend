@@ -87,7 +87,23 @@ const CurrencyConverter = () => {
       // Store the search results in sessionStorage or a global state
       // This will be used by the search results page
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("searchResults", JSON.stringify(response));
+        // Structure the data properly for the useSearchResults hook
+        const structuredResults = {
+          offices: Array.isArray(response) ? response : response.offices || [],
+          totalCount: Array.isArray(response)
+            ? response.length
+            : response.totalCount || 0,
+          searchRadius: 10, // 10km radius as used in the API call
+          centerLocation: {
+            latitude: selectedLocationData.latitude,
+            longitude: selectedLocationData.longitude,
+          },
+        };
+
+        sessionStorage.setItem(
+          "searchResults",
+          JSON.stringify(structuredResults)
+        );
         sessionStorage.setItem(
           "searchParams",
           JSON.stringify({

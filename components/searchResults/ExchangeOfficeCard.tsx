@@ -4,26 +4,42 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
-import { ExternalLink, Phone } from "lucide-react";
+import { ExternalLink, Phone, MapPin, Star } from "lucide-react";
 import { openModal } from "@/store/modals";
 
 interface ExchangeOfficeCardProps {
+  id: string;
   name: string;
   rate: string;
   location: string;
   hours: string;
   imageUrl: string;
+  phone?: string;
+  whatsapp?: string;
+  distance?: number;
+  isVerified?: boolean;
+  isFeatured?: boolean;
+  coordinates?: [number, number];
+  slug?: string;
   isPopular?: boolean;
   isOpen?: boolean;
 }
 
 export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
+  id,
   name,
   rate,
   location,
   hours,
   imageUrl,
-  isPopular = true,
+  phone,
+  whatsapp,
+  distance,
+  isVerified = false,
+  isFeatured = false,
+  coordinates,
+  slug,
+  isPopular = false,
   isOpen = true,
 }) => {
   const [selectValue, setSelectValue] = useState<string>("");
@@ -33,23 +49,35 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
       openModal("MODAL_WHATSAPP_ALERT", { step: 0 });
     } else if (value === "share") {
       openModal("MODAL_SHARE_EXCHANGE", {
-        exchangeId: "123",
+        exchangeId: id,
         exchangeData: {
-          name: "DirhamX",
-          location: "Rabat, Morocco",
-          rate: "Rp 16450",
-          lastUpdate: "16 April 2025",
-          image: "/img/dirham-alert.png",
-          link: "https://www.exchangego24.com/tdjs...",
+          name: name,
+          location: location,
+          rate: rate,
+          lastUpdate: new Date().toLocaleDateString(),
+          image: imageUrl,
+          link: `https://www.exchangego24.com/office/${slug || id}`,
         },
       });
-    } else if (value === "call") {
-      // Example: open tel: link
-      window.open("tel:+1234567890");
+    } else if (value === "call" && phone) {
+      window.open(`tel:${phone}`);
+    } else if (value === "whatsapp" && whatsapp) {
+      window.open(`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`);
     }
     // Reset select value after action
     setSelectValue("");
   };
+
+  const handleGetDirection = () => {
+    if (coordinates) {
+      const [lng, lat] = coordinates;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.open(url, "_blank");
+    }
+  };
+
+  // Determine if this office should show as popular
+  const showAsPopular = isPopular || isFeatured;
 
   return (
     <article className="overflow-hidden grow shrink self-stretch my-auto bg-white rounded-lg border border-solid border-neutral-200 min-w-60 w-[221px]">
@@ -59,15 +87,27 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
             src={imageUrl}
             alt={`${name} office`}
             className="object-cover absolute inset-0 size-full"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/img/default-office-logo.svg";
+            }}
           />
           <div className="flex relative gap-5 justify-between w-full">
-            {isPopular && (
-              <div className="flex gap-0.5 justify-center items-center p-1 bg-white rounded shadow-[0px_6px_24px_rgba(0,0,0,0.16)]">
-                <span className="self-stretch my-auto">
-                  🔥 Popular Exchange
-                </span>
-              </div>
-            )}
+            <div className="flex gap-2">
+              {showAsPopular && (
+                <div className="flex gap-0.5 justify-center items-center p-1 bg-white rounded shadow-[0px_6px_24px_rgba(0,0,0,0.16)]">
+                  <span className="self-stretch my-auto">
+                    🔥 {isFeatured ? "Featured" : "Popular"} Exchange
+                  </span>
+                </div>
+              )}
+              {isVerified && (
+                <div className="flex gap-0.5 justify-center items-center p-1 bg-green-100 text-green-800 rounded shadow-[0px_6px_24px_rgba(0,0,0,0.16)]">
+                  <Star className="w-3 h-3 fill-current" />
+                  <span className="self-stretch my-auto text-xs">Verified</span>
+                </div>
+              )}
+            </div>
             {isOpen && (
               <div className="flex gap-0.5 justify-center items-center p-1 whitespace-nowrap bg-white rounded shadow-[0px_6px_24px_rgba(0,0,0,0.16)]">
                 <span className="self-stretch my-auto">Open</span>
@@ -83,8 +123,16 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
               <h3 className="text-base text-neutral-900">{name}</h3>
               <p className="mt-1 text-xl font-bold text-neutral-900">{rate}</p>
               <div className="mt-3 w-60 max-w-full text-sm text-zinc-600">
-                <p className="leading-5">{location}</p>
+                <div className="flex items-start gap-1">
+                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <p className="leading-5">{location}</p>
+                </div>
                 <p className="mt-1 leading-snug">{hours}</p>
+                {distance && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {distance.toFixed(1)} km away
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -92,6 +140,7 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
             <Button
               variant="outline"
               size="xl"
+              onClick={handleGetDirection}
               className="flex-1 shrink gap-2.5 self-stretch px-6 py-3 my-auto text-base font-medium leading-snug text-green-900 rounded-md border border-green-900 border-solid basis-0 max-md:px-5"
             >
               Get Direction
@@ -138,16 +187,36 @@ export const ExchangeOfficeCard: React.FC<ExchangeOfficeCardProps> = ({
                     <span>Share this Exchange</span>
                   </div>
                 </SelectItem>
-                <SelectItem
-                  value="call"
-                  noCheckIcon
-                  className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-b-xl"
-                >
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-5 h-5 opacity-70" />
-                    <span>Call Atlas exchange ( Mobile )</span>
-                  </div>
-                </SelectItem>
+                {phone && (
+                  <SelectItem
+                    value="call"
+                    noCheckIcon
+                    className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-5 h-5 opacity-70" />
+                      <span>Call {name}</span>
+                    </div>
+                  </SelectItem>
+                )}
+                {whatsapp && (
+                  <SelectItem
+                    value="whatsapp"
+                    noCheckIcon
+                    className="px-4 py-3 text-[#585858] text-base font-medium cursor-pointer hover:bg-gray-100 rounded-b-xl"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src="/svg/whatsapp.svg"
+                        alt="whatsapp icon"
+                        width={20}
+                        height={20}
+                        className="w-5 h-5 opacity-70"
+                      />
+                      <span>WhatsApp {name}</span>
+                    </div>
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -12,13 +12,13 @@ import {
   Loader2,
   MapPin,
   X,
-  Search,
   Building,
   MapIcon,
   Home,
   Navigation,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import mapboxgl from "mapbox-gl";
 
 import { useMap } from "@/context/map-context";
 import { cn } from "@/lib/utils";
@@ -32,10 +32,12 @@ import { LocationMarker } from "./location-marker";
 import { LocationPopup } from "./location-popup";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMapStore } from "@/store/map";
+import { useSearchResults } from "@/lib/hooks/useSearchResults";
 
 export default function MapSearch() {
   const { map } = useMap();
   const isMapMaximized = useMapStore((state) => state.isMapMaximized);
+  const { searchResults, searchParams, isLoading } = useSearchResults();
   const [query, setQuery] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [results, setResults] = useState<LocationSuggestion[]>([]);
@@ -43,114 +45,16 @@ export default function MapSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] =
     useState<LocationFeature | null>(null);
-  const [selectedLocations, setSelectedLocations] = useState<LocationFeature[]>(
-    []
-  );
+  const [exchangeOfficeMarkers, setExchangeOfficeMarkers] = useState<
+    LocationFeature[]
+  >([]);
   const [recentSearches, setRecentSearches] = useState<LocationSuggestion[]>(
     []
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
 
-  // Pre-cached mock data for exchange offices in Morocco
-  const mockExchangeOffices = [
-    {
-      mapbox_id: "exchange.atlas",
-      name: "Atlas Exchange",
-      feature_type: "poi",
-      place_formatted: "4140 Parker Rd. Allentown, Morocco",
-      maki: "bank",
-      coordinates: [-7.5898, 33.5731], // Casablanca
-    },
-    {
-      mapbox_id: "exchange.dirhamx",
-      name: "DirhamX",
-      feature_type: "poi",
-      place_formatted: "2118 Thornridge Cir. Rabat, Morocco",
-      maki: "bank",
-      coordinates: [-6.8498, 33.9716], // Rabat
-    },
-    {
-      mapbox_id: "exchange.sahara",
-      name: "Sahara Exchange",
-      feature_type: "poi",
-      place_formatted: "2118 Thornridge Cir. Marrakech, Morocco",
-      maki: "bank",
-      coordinates: [-8.0083, 31.6295], // Marrakech
-    },
-    {
-      mapbox_id: "exchange.golden",
-      name: "Golden Dirham",
-      feature_type: "poi",
-      place_formatted: "2118 Thornridge Cir. Tangier, Morocco",
-      maki: "bank",
-      coordinates: [-5.8128, 35.7595], // Tangier
-    },
-    {
-      mapbox_id: "exchange.oasis",
-      name: "Oasis Currency",
-      feature_type: "poi",
-      place_formatted: "4140 Parker Rd. Fez, Morocco",
-      maki: "bank",
-      coordinates: [-5.0078, 34.0331], // Fez
-    },
-    {
-      mapbox_id: "exchange.casablanca",
-      name: "Casablanca Forex",
-      feature_type: "poi",
-      place_formatted: "3517 W. Gray St. Casablanca, Morocco",
-      maki: "bank",
-      coordinates: [-7.6192, 33.5992], // Casablanca
-    },
-  ];
-
-  // Pre-cached locations in Morocco
-  const mockMoroccoLocations = [
-    {
-      mapbox_id: "place.rabat",
-      name: "Rabat",
-      feature_type: "place",
-      place_formatted: "Rabat, Morocco",
-      coordinates: [-6.8498, 33.9716],
-    },
-    {
-      mapbox_id: "place.casablanca",
-      name: "Casablanca",
-      feature_type: "place",
-      place_formatted: "Casablanca, Morocco",
-      coordinates: [-7.5898, 33.5731],
-    },
-    {
-      mapbox_id: "place.marrakech",
-      name: "Marrakech",
-      feature_type: "place",
-      place_formatted: "Marrakech, Morocco",
-      coordinates: [-8.0083, 31.6295],
-    },
-    {
-      mapbox_id: "place.fez",
-      name: "Fez",
-      feature_type: "place",
-      place_formatted: "Fez, Morocco",
-      coordinates: [-5.0078, 34.0331],
-    },
-    {
-      mapbox_id: "place.tangier",
-      name: "Tangier",
-      feature_type: "place",
-      place_formatted: "Tangier, Morocco",
-      coordinates: [-5.8128, 35.7595],
-    },
-    {
-      mapbox_id: "place.agadir",
-      name: "Agadir",
-      feature_type: "place",
-      place_formatted: "Agadir, Morocco",
-      coordinates: [-9.5981, 30.4278],
-    },
-  ];
-
-  // Load recent searches from localStorage and preload exchange offices on mount
+  // Load recent searches from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("recentMapSearches");
@@ -165,85 +69,126 @@ export default function MapSearch() {
     }
   }, []);
 
-  // Preload exchange office markers when map is ready
+  // Convert API exchange office data to LocationFeature format and display markers
   useEffect(() => {
-    if (!map) return;
+    console.log("🗺️ MapSearch: Processing exchange office data...");
+    console.log("Search Results:", searchResults);
+    console.log("Map instance:", map);
 
-    // Small delay to let map initialize first
-    const timer = setTimeout(() => {
-      // Create features for each exchange office
-      const exchangeFeatures: LocationFeature[] = [
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [-7.5898, 33.5731], // Atlas Exchange in Casablanca
+    if (!map) {
+      console.log("❌ Map not ready yet");
+      return;
+    }
+
+    if (!searchResults?.offices || searchResults.offices.length === 0) {
+      console.log("❌ No exchange offices found in search results");
+      setExchangeOfficeMarkers([]);
+      return;
+    }
+
+    console.log(
+      `✅ Processing ${searchResults.offices.length} exchange offices`
+    );
+
+    // Convert API data to LocationFeature format
+    const markers: LocationFeature[] = searchResults.offices.map((office) => {
+      const [longitude, latitude] = office.location.coordinates;
+
+      console.log(`📍 Creating marker for: ${office.officeName}`);
+      console.log(`   Coordinates: [${longitude}, ${latitude}]`);
+      console.log(`   Address: ${office.address}, ${office.city.name}`);
+
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        },
+        properties: {
+          name: office.officeName,
+          mapbox_id: `exchange-${office.id}`,
+          feature_type: "poi",
+          place_formatted: `${office.address}, ${office.city.name}`,
+          coordinates: {
+            longitude: longitude,
+            latitude: latitude,
           },
-          properties: {
-            name: "Atlas Exchange",
-            mapbox_id: "exchange.atlas",
-            feature_type: "poi",
-            place_formatted: "4140 Parker Rd. Allentown, Morocco",
-            coordinates: {
-              longitude: -7.5898,
-              latitude: 33.5731,
+          context: {
+            place: { name: office.city.name },
+            country: {
+              name: office.country.name,
+              country_code: office.country.alpha2,
+              country_code_alpha_3: office.country.alpha3,
             },
-            context: {} as any,
-            maki: "bank",
+          },
+          maki: "bank",
+          // Store additional exchange office data
+          metadata: {
+            officeId: office.id,
+            phone: office.primaryPhoneNumber,
+            whatsapp: office.whatsappNumber,
+            distance: office.distanceInKm,
+            isVerified: office.isVerified,
+            isFeatured: office.isFeatured,
+            rates: office.rates,
+            slug: office.slug,
+            logo: office.logo,
           },
         },
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [-6.8498, 33.9716], // DirhamX in Rabat
-          },
-          properties: {
-            name: "DirhamX",
-            mapbox_id: "exchange.dirhamx",
-            feature_type: "poi",
-            place_formatted: "2118 Thornridge Cir. Rabat, Morocco",
-            coordinates: {
-              longitude: -6.8498,
-              latitude: 33.9716,
-            },
-            context: {} as any,
-            maki: "bank",
-          },
-        },
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [-8.0083, 31.6295], // Sahara Exchange in Marrakech
-          },
-          properties: {
-            name: "Sahara Exchange",
-            mapbox_id: "exchange.sahara",
-            feature_type: "poi",
-            place_formatted: "2118 Thornridge Cir. Marrakech, Morocco",
-            coordinates: {
-              longitude: -8.0083,
-              latitude: 31.6295,
-            },
-            context: {} as any,
-            maki: "bank",
-          },
-        },
-      ];
+      };
+    });
 
-      // Add exchange offices to the map
-      setSelectedLocations(exchangeFeatures);
-    }, 1500);
+    setExchangeOfficeMarkers(markers);
+    console.log(`🎯 Created ${markers.length} exchange office markers`);
 
-    return () => clearTimeout(timer);
-  }, [map]);
+    // Center map to show all exchange offices
+    if (markers.length > 0) {
+      const coordinates = markers.map((marker) => marker.geometry.coordinates);
+
+      if (coordinates.length === 1) {
+        // Single office - center on it
+        const [lng, lat] = coordinates[0];
+        console.log(`🎯 Centering on single office: [${lng}, ${lat}]`);
+        map.flyTo({
+          center: [lng, lat],
+          zoom: 14,
+          duration: 2000,
+        });
+      } else {
+        // Multiple offices - fit bounds to show all
+        console.log(`🎯 Fitting bounds for ${coordinates.length} offices`);
+
+        // Calculate bounds
+        let minLng = coordinates[0][0];
+        let maxLng = coordinates[0][0];
+        let minLat = coordinates[0][1];
+        let maxLat = coordinates[0][1];
+
+        coordinates.forEach(([lng, lat]) => {
+          minLng = Math.min(minLng, lng);
+          maxLng = Math.max(maxLng, lng);
+          minLat = Math.min(minLat, lat);
+          maxLat = Math.max(maxLat, lat);
+        });
+
+        const bounds = new mapboxgl.LngLatBounds(
+          [minLng, minLat],
+          [maxLng, maxLat]
+        );
+
+        map.fitBounds(bounds, {
+          padding: 100,
+          duration: 2000,
+          maxZoom: 12,
+        });
+      }
+    }
+  }, [map, searchResults]);
 
   // Save recent searches to localStorage
   const saveRecentSearch = useCallback(
     (suggestion: LocationSuggestion) => {
       try {
-        // Add to front of array, remove duplicates, limit to 5
         const updated = [
           suggestion,
           ...recentSearches.filter((s) => s.mapbox_id !== suggestion.mapbox_id),
@@ -258,10 +203,10 @@ export default function MapSearch() {
     [recentSearches]
   );
 
+  // Handle search functionality (only for location search, not exchange offices)
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults([]);
-      // Don't close immediately to allow showing recent searches
       return;
     }
 
@@ -271,53 +216,7 @@ export default function MapSearch() {
       setErrorMessage(null);
 
       try {
-        // Mock data for exchange offices in Morocco
-        const mockExchangeOffices = [
-          {
-            mapbox_id: "exchange.atlas",
-            name: "Atlas Exchange",
-            feature_type: "poi",
-            place_formatted: "4140 Parker Rd. Allentown, Morocco",
-            maki: "bank",
-          },
-          {
-            mapbox_id: "exchange.dirhamx",
-            name: "DirhamX",
-            feature_type: "poi",
-            place_formatted: "2118 Thornridge Cir. Rabat, Morocco",
-            maki: "bank",
-          },
-          {
-            mapbox_id: "exchange.sahara",
-            name: "Sahara Exchange",
-            feature_type: "poi",
-            place_formatted: "2118 Thornridge Cir. Marrakech, Morocco",
-            maki: "bank",
-          },
-          {
-            mapbox_id: "exchange.golden",
-            name: "Golden Dirham",
-            feature_type: "poi",
-            place_formatted: "2118 Thornridge Cir. Tangier, Morocco",
-            maki: "bank",
-          },
-          {
-            mapbox_id: "exchange.oasis",
-            name: "Oasis Currency",
-            feature_type: "poi",
-            place_formatted: "4140 Parker Rd. Fez, Morocco",
-            maki: "bank",
-          },
-          {
-            mapbox_id: "exchange.casablanca",
-            name: "Casablanca Forex",
-            feature_type: "poi",
-            place_formatted: "3517 W. Gray St. Casablanca, Morocco",
-            maki: "bank",
-          },
-        ];
-
-        // Mock locations in Morocco
+        // Only search for locations, not exchange offices
         const mockMoroccoLocations = [
           {
             mapbox_id: "place.rabat",
@@ -357,34 +256,23 @@ export default function MapSearch() {
           },
         ];
 
-        // Simulate network delay but much faster than real API
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Search using the mock data
         const query = debouncedQuery.toLowerCase();
-        const matchingExchanges = mockExchangeOffices.filter(
-          (office) =>
-            office.name.toLowerCase().includes(query) ||
-            office.place_formatted.toLowerCase().includes(query)
-        );
-
         const matchingLocations = mockMoroccoLocations.filter(
           (location) =>
             location.name.toLowerCase().includes(query) ||
             location.place_formatted.toLowerCase().includes(query)
         );
 
-        // Combine results, prioritizing exchanges
-        const combinedResults = [...matchingExchanges, ...matchingLocations];
-
-        if (combinedResults.length === 0) {
+        if (matchingLocations.length === 0) {
           setErrorMessage("No locations found. Try a different search term.");
           setResults([]);
         } else {
-          setResults(combinedResults);
+          setResults(matchingLocations);
         }
       } catch (err) {
-        console.error("Geocoding error:", err);
+        console.error("Search error:", err);
         setErrorMessage("Search failed. Please try again.");
         setResults([]);
       } finally {
@@ -432,7 +320,6 @@ export default function MapSearch() {
       return iconMap[location.maki];
     }
 
-    // Use different icons based on feature type
     if (location.feature_type === "address") {
       return <Home className="h-4 w-4 text-primary" />;
     } else if (location.feature_type === "poi") {
@@ -445,23 +332,15 @@ export default function MapSearch() {
       return <Building className="h-4 w-4 text-primary" />;
     }
 
-    // Default
     return <MapPin className="h-4 w-4 text-primary" />;
   };
 
-  // Handle location selection
+  // Handle location selection (for search functionality)
   const handleSelect = async (suggestion: LocationSuggestion) => {
     try {
       setIsSearching(true);
 
-      // Map of mock coordinates for each location
       const mockCoordinates: Record<string, [number, number]> = {
-        "exchange.atlas": [-7.5898, 33.5731], // Casablanca
-        "exchange.dirhamx": [-6.8498, 33.9716], // Rabat
-        "exchange.sahara": [-8.0083, 31.6295], // Marrakech
-        "exchange.golden": [-5.8128, 35.7595], // Tangier
-        "exchange.oasis": [-5.0078, 34.0331], // Fez
-        "exchange.casablanca": [-7.6192, 33.5992], // Casablanca
         "place.rabat": [-6.8498, 33.9716],
         "place.casablanca": [-7.5898, 33.5731],
         "place.marrakech": [-8.0083, 31.6295],
@@ -470,10 +349,9 @@ export default function MapSearch() {
         "place.agadir": [-9.5981, 30.4278],
       };
 
-      // Create a feature from mock data
       const coordinates = mockCoordinates[suggestion.mapbox_id] || [
         -7.092, 31.792,
-      ]; // Default to center of Morocco
+      ];
 
       const featureData: LocationFeature = {
         type: "Feature",
@@ -490,44 +368,26 @@ export default function MapSearch() {
             longitude: coordinates[0],
             latitude: coordinates[1],
           },
-          context: {} as any,
+          context: {},
           maki: suggestion.maki || "marker",
         },
       };
 
       if (map) {
-        // Fly to location with enhanced animation
         map.flyTo({
           center: coordinates,
-          zoom: 14,
-          speed: 2,
-          curve: 1.2,
+          zoom: 12,
           duration: 1500,
-          essential: true,
-          pitch: 40,
-          bearing: 0,
         });
 
-        // Animate in with a slight pitch change
-        setTimeout(() => {
-          map.easeTo({
-            pitch: 30,
-            duration: 800,
-            essential: true,
-          });
-        }, 1500);
-
         setDisplayValue(suggestion.name);
-        saveRecentSearch(suggestion); // Add to recent searches
-
-        setSelectedLocations([featureData]);
+        saveRecentSearch(suggestion);
         setSelectedLocation(featureData);
-
         setResults([]);
         setIsOpen(false);
       }
     } catch (err) {
-      console.error("Retrieve error:", err);
+      console.error("Location selection error:", err);
       setErrorMessage("Failed to get location details");
     } finally {
       setIsSearching(false);
@@ -540,9 +400,8 @@ export default function MapSearch() {
     setDisplayValue("");
     setResults([]);
     setErrorMessage(null);
-    setIsOpen(true); // Keep open to show recent searches
+    setIsOpen(true);
     setSelectedLocation(null);
-    setSelectedLocations([]);
   };
 
   // Check if location is selected
@@ -553,19 +412,29 @@ export default function MapSearch() {
     );
   };
 
-  // Early return if map is not maximized
+  // Early return if map is not maximized - still show markers
   if (!isMapMaximized) {
     return (
       <>
-        {/* Still render markers and popup even when search is hidden */}
-        {selectedLocations.map((location) => (
+        {/* Render exchange office markers */}
+        {exchangeOfficeMarkers.map((marker) => (
           <LocationMarker
-            key={location.properties.mapbox_id}
-            location={location}
+            key={marker.properties.mapbox_id}
+            location={marker}
             onHover={(data) => setSelectedLocation(data)}
-            isSelected={isLocationSelected(location)}
+            isSelected={isLocationSelected(marker)}
           />
         ))}
+
+        {/* Render search location marker if exists */}
+        {selectedLocation && (
+          <LocationMarker
+            key={selectedLocation.properties.mapbox_id}
+            location={selectedLocation}
+            onHover={(data) => setSelectedLocation(data)}
+            isSelected={true}
+          />
+        )}
 
         <AnimatePresence>
           {selectedLocation && (
@@ -594,7 +463,6 @@ export default function MapSearch() {
                 "w-full flex items-center justify-between px-3 gap-1 bg-white"
               )}
             >
-              {/* <Search className="h-4 w-4 text-muted-foreground shrink-0 mr-1" /> */}
               <CommandInput
                 placeholder="Search locations..."
                 value={displayValue}
@@ -740,15 +608,26 @@ export default function MapSearch() {
         </motion.div>
       </section>
 
-      {/* Active location markers */}
-      {selectedLocations.map((location) => (
+      {/* Render exchange office markers */}
+      {exchangeOfficeMarkers.map((marker) => (
         <LocationMarker
-          key={location.properties.mapbox_id}
-          location={location}
+          key={marker.properties.mapbox_id}
+          location={marker}
           onHover={(data) => setSelectedLocation(data)}
-          isSelected={isLocationSelected(location)}
+          isSelected={isLocationSelected(marker)}
         />
       ))}
+
+      {/* Render search location marker if exists */}
+      {selectedLocation &&
+        !selectedLocation.properties.mapbox_id.startsWith("exchange-") && (
+          <LocationMarker
+            key={selectedLocation.properties.mapbox_id}
+            location={selectedLocation}
+            onHover={(data) => setSelectedLocation(data)}
+            isSelected={true}
+          />
+        )}
 
       {/* Location popup */}
       <AnimatePresence>

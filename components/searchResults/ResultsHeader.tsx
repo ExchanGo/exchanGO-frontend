@@ -5,6 +5,7 @@ import React from "react";
 import { Button } from "../ui/button";
 import { openModal } from "@/store/modals";
 import { useFilterByCurrencyStore } from "@/store/filter-by-currency";
+import { useSearchResults } from "@/lib/hooks/useSearchResults";
 import {
   Select,
   SelectTrigger,
@@ -12,16 +13,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-interface ResultsHeaderProps {
-  count: number;
-  location: string;
-  lastUpdate: string;
-}
-export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
-  count,
-  location,
-  lastUpdate,
-}) => {
+export const ResultsHeader: React.FC = () => {
+  const { searchResults, searchParams, isLoading } = useSearchResults();
+
   const handleFilterClick = () => {
     openModal("MODAL_FILTER_CURRENCY", {
       minPrice: 0,
@@ -55,6 +49,36 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
   ];
   const [sortValue, setSortValue] = React.useState("");
 
+  // Get data from search results
+  const count = searchResults?.offices?.length || 0;
+  const location =
+    searchParams?.location?.name ||
+    searchParams?.location?.place_formatted ||
+    "Unknown Location";
+  const lastUpdate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  if (isLoading) {
+    return (
+      <header className="flex flex-wrap gap-5 justify-between w-full leading-snug max-md:max-w-full">
+        <div className="flex gap-1 items-center my-auto text-sm text-zinc-600">
+          <div className="animate-pulse bg-gray-200 h-4 w-48 rounded"></div>
+        </div>
+        <div className="flex gap-4">
+          <div className="animate-pulse bg-gray-200 h-4 w-32 rounded"></div>
+          <div className="flex gap-2">
+            <div className="animate-pulse bg-gray-200 h-12 w-24 rounded-lg"></div>
+            <div className="animate-pulse bg-gray-200 h-12 w-24 rounded-lg"></div>
+            <div className="animate-pulse bg-gray-200 h-12 w-12 rounded-lg"></div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="flex flex-wrap gap-5 justify-between w-full leading-snug max-md:max-w-full">
       <div className="flex gap-1 items-center my-auto text-sm text-zinc-600">
@@ -62,7 +86,9 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
         <span className="self-stretch my-auto font-bold text-green-900">
           {count}
         </span>
-        <span className="self-stretch my-auto">Exchange office listing in</span>
+        <span className="self-stretch my-auto">
+          Exchange office{count !== 1 ? "s" : ""} listing in
+        </span>
         <span className="self-stretch my-auto font-bold text-green-900">
           {location}
         </span>
