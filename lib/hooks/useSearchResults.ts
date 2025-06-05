@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface ExchangeOfficeAPI {
   id: string;
@@ -123,56 +123,73 @@ export const useSearchResults = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadSearchData = () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const loadSearchData = useCallback(() => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        // Load search results from sessionStorage
-        const resultsData = sessionStorage.getItem('searchResults');
-        const paramsData = sessionStorage.getItem('searchParams');
+      // Load search results from sessionStorage
+      const resultsData = sessionStorage.getItem('searchResults');
+      const paramsData = sessionStorage.getItem('searchParams');
 
-        if (resultsData) {
-          const parsedResults = JSON.parse(resultsData);
-          setSearchResults(parsedResults);
-        }
-
-        if (paramsData) {
-          const parsedParams = JSON.parse(paramsData);
-          setSearchParams(parsedParams);
-        }
-
-        // If no data found, set empty state
-        if (!resultsData && !paramsData) {
-          setSearchResults({ offices: [] });
-          setSearchParams(null);
-        }
-
-      } catch (err) {
-        console.error('Error loading search data:', err);
-        setError('Failed to load search results');
-        setSearchResults({ offices: [] });
-      } finally {
-        setIsLoading(false);
+      if (resultsData) {
+        const parsedResults = JSON.parse(resultsData);
+        setSearchResults(parsedResults);
+        console.log('📊 Search results loaded:', parsedResults);
       }
-    };
 
+      if (paramsData) {
+        const parsedParams = JSON.parse(paramsData);
+        setSearchParams(parsedParams);
+        console.log('🔍 Search params loaded:', parsedParams);
+      }
+
+      // If no data found, set empty state
+      if (!resultsData && !paramsData) {
+        setSearchResults({ offices: [] });
+        setSearchParams(null);
+      }
+
+    } catch (err) {
+      console.error('Error loading search data:', err);
+      setError('Failed to load search results');
+      setSearchResults({ offices: [] });
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Manual refresh function
+  const refreshResults = useCallback(() => {
+    console.log('🔄 Manually refreshing search results...');
+    loadSearchData();
+  }, [loadSearchData]);
+
+  useEffect(() => {
     loadSearchData();
 
-    // Listen for storage changes (in case data is updated)
+    // Listen for storage changes (both native and custom events)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'searchResults' || e.key === 'searchParams') {
+        console.log('📡 Storage change detected, reloading data...');
         loadSearchData();
       }
     };
 
+    // Listen for custom events (for same-window updates)
+    const handleCustomStorageChange = (e: Event) => {
+      console.log('📡 Custom storage event detected, reloading data...');
+      loadSearchData();
+    };
+
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('searchResultsUpdated', handleCustomStorageChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('searchResultsUpdated', handleCustomStorageChange);
     };
-  }, []);
+  }, [loadSearchData]);
 
   // Helper function to get the best rate for a specific currency pair
   const getBestRate = (office: ExchangeOfficeAPI, fromCurrency: string, toCurrency: string) => {
@@ -238,5 +255,6 @@ export const useSearchResults = () => {
     formatRate,
     getOfficeLogoUrl,
     formatWorkingHours,
+    refreshResults,
   };
 }; 

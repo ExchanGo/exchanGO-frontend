@@ -198,9 +198,9 @@ export default function Search() {
               transition={{ duration: 0.3 }}
             >
               <SearchFilters />
-              <div className="mx-8 mt-6">
+              <div className="mx-4 lg:mx-8 mt-6">
                 <ResultsHeader />
-                <div className="pb-10">
+                <div className="pb-10 mt-6">
                   <ResultsList />
                 </div>
               </div>

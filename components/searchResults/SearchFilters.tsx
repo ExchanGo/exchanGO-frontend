@@ -12,17 +12,25 @@ import {
   MapboxLocationResult,
   mapboxLocationService,
 } from "@/lib/services/mapboxService";
+import { useRouter } from "next/navigation";
+import { exchangeService } from "@/lib/services/exchangeService";
 
 export const SearchFilters: React.FC = () => {
+  const router = useRouter();
   const [sourceCurrency, setSourceCurrency] = useState("USD");
+  const [targetCurrency, setTargetCurrency] = useState("MAD");
+  const [amount, setAmount] = useState("1000");
   const [isLocating, setIsLocating] = useState(false);
+  const [isCheckingRates, setIsCheckingRates] = useState(false);
   const [selectedLocation, setSelectedLocation] =
     useState<MapboxLocationResult | null>(null);
   const [locationKey, setLocationKey] = useState(0); // Force re-render
+  const [error, setError] = useState<string | null>(null);
   const lastLocationCallRef = useRef<number>(0); // Track last call time
 
   const handleCurrencyChange = (currencies: { from: string; to: string }) => {
     setSourceCurrency(currencies.from);
+    setTargetCurrency(currencies.to);
     console.log("Selected currencies:", currencies);
   };
 
@@ -32,8 +40,14 @@ export const SearchFilters: React.FC = () => {
   ) => {
     if (location) {
       setSelectedLocation(location);
+      setError(null); // Clear any previous errors when location changes
       console.log("Selected location:", location);
     }
+  };
+
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
+    console.log("New Amount:", value);
   };
 
   // Function to trigger the locate-fixed button on map controls
@@ -182,6 +196,138 @@ export const SearchFilters: React.FC = () => {
     }
   };
 
+  // Function to handle check rates button click
+  const handleCheckRates = async () => {
+    setIsCheckingRates(true);
+    setError(null);
+
+    try {
+      // Validate that we have location data
+      if (
+        !selectedLocation ||
+        !selectedLocation.latitude ||
+        !selectedLocation.longitude
+      ) {
+        throw new Error("Please select a valid location first");
+      }
+
+      console.log("Selected location data:", selectedLocation);
+      console.log("Selected currencies:", {
+        from: sourceCurrency,
+        to: targetCurrency,
+      });
+
+      let response;
+
+      try {
+        // First, try the simple API call (without currency parameters)
+        console.log("Trying simple API call without currency parameters...");
+        response = await exchangeService.getNearbyOfficesSimple(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          10 // 10km radius
+        );
+        console.log("Simple API call succeeded!");
+      } catch (simpleError) {
+        console.log(
+          "Simple API call failed, trying with currency parameters...",
+          simpleError
+        );
+
+        // If simple call fails, try with currency parameters
+        const requestParams = {
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          radiusInKm: 10,
+          targetCurrency: targetCurrency,
+          baseCurrency: sourceCurrency,
+        };
+
+        // Validate parameters
+        const validationErrors =
+          exchangeService.validateNearbyOfficesRequest(requestParams);
+        if (validationErrors.length > 0) {
+          throw new Error(validationErrors.join(", "));
+        }
+
+        response = await exchangeService.getNearbyOffices(requestParams);
+      }
+
+      console.log("Final API Response:", response);
+
+      // Store the search results in sessionStorage
+      if (typeof window !== "undefined") {
+        // Structure the data properly for the useSearchResults hook
+        const structuredResults = {
+          offices: Array.isArray(response) ? response : response.offices || [],
+          totalCount: Array.isArray(response)
+            ? response.length
+            : response.totalCount || 0,
+          searchRadius: 10, // 10km radius as used in the API call
+          centerLocation: {
+            latitude: selectedLocation.latitude,
+            longitude: selectedLocation.longitude,
+          },
+        };
+
+        const searchParams = {
+          location: selectedLocation,
+          amount: amount,
+          sourceCurrency: sourceCurrency,
+          targetCurrency: targetCurrency,
+        };
+
+        // Update sessionStorage
+        sessionStorage.setItem(
+          "searchResults",
+          JSON.stringify(structuredResults)
+        );
+        sessionStorage.setItem("searchParams", JSON.stringify(searchParams));
+
+        // Trigger a custom storage event to force components to update
+        // This ensures all components listening to search results get updated
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "searchResults",
+            newValue: JSON.stringify(structuredResults),
+            storageArea: sessionStorage,
+          })
+        );
+
+        // Also dispatch a custom event for same-window updates
+        window.dispatchEvent(
+          new CustomEvent("searchResultsUpdated", {
+            detail: { results: structuredResults, params: searchParams },
+          })
+        );
+
+        console.log(
+          `✅ Successfully loaded ${structuredResults.offices.length} exchange offices`
+        );
+
+        // Show success message
+        if (structuredResults.offices.length > 0) {
+          console.log(
+            `🎯 Found ${structuredResults.offices.length} exchange offices in your area`
+          );
+        } else {
+          setError(
+            "No exchange offices found in your area. Try expanding your search radius."
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error checking rates:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while checking rates"
+      );
+    } finally {
+      setIsCheckingRates(false);
+    }
+  };
+
   return (
     <section className="flex flex-col justify-center px-8 py-6 leading-snug border-b border-neutral-200 max-md:px-5 max-md:max-w-full">
       <div className="w-full max-md:max-w-full">
@@ -201,8 +347,8 @@ export const SearchFilters: React.FC = () => {
                 label="Amount"
                 placeholder="Enter amount"
                 currencyCode={sourceCurrency}
-                defaultValue="1"
-                onChange={(value: string) => console.log("New Amount:", value)}
+                defaultValue={amount}
+                onChange={handleAmountChange}
               />
             </div>
           </div>
@@ -230,10 +376,30 @@ export const SearchFilters: React.FC = () => {
               )}
             </DualCurrencySelector>
           </div>
-          <Button variant="gradient" className="h-12">
-            Check Rates
+          <Button
+            variant="gradient"
+            className="h-12"
+            onClick={handleCheckRates}
+            disabled={isCheckingRates}
+          >
+            {isCheckingRates ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Checking...
+              </>
+            ) : (
+              "Check Rates"
+            )}
           </Button>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600 font-dm">{error}</p>
+          </div>
+        )}
+
         <div className="flex flex-col items-start mt-4 w-full text-sm font-medium text-right text-[var(--color-greeny)] cursor-pointer max-md:pr-5 max-md:max-w-full">
           <button
             className="flex gap-1 items-center cursor-pointer hover:text-[var(--color-greeny-bold)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -40,12 +40,99 @@ export interface NearbyOfficesResponse {
 
 class ExchangeService {
   private readonly baseUrl = 'https://exchango.opineomanager.com/api/v1';
-  private readonly authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwicm9sZSI6eyJpZCI6MiwibmFtZSI6IlVzZXIiLCJfX2VudGl0eSI6IlJvbGVFbnRpdHkifSwic2Vzc2lvbklkIjoxMiwiaWF0IjoxNzQ4OTc3NzA4LCJleHAiOjE3NDg5ODM2NDh9.W6US-wysKa-esZWEbY-heSrCwGKPYxvF5JRNkF6tEL4';
+  private accessToken: string;
+  private refreshToken: string;
+  private tokenExpires: number;
+
+  constructor() {
+    // Initialize with the current tokens
+    this.accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwicm9sZSI6eyJpZCI6Mn0sInNlc3Npb25JZCI6MTMsImlhdCI6MTc0ODk4NTEzOCwiZXhwIjoxNzQ4OTkxMDc4fQ.IjWaYl3ygJzeXZTuli_VUxdece0nfgXoK57EqcCTmEs';
+    this.refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOjEzLCJoYXNoIjoiOWExNDNjZTA0Y2RiNzZkOWU1ZWY5MmZiNTc5OWM2MDI3YmYzMDc2YTQxMmZmNzAyZTFiNWE0NWEzZmY2MTZmNiIsImlhdCI6MTc0ODk4NTEzOCwiZXhwIjoyMDY0MzQ1MTM4fQ.FnNGQ30sAbrU1CfXNwioKwg1JVnadZE8JuSlcKB0eqo';
+    this.tokenExpires = 1748991078761;
+  }
+
+  /**
+   * Update tokens manually
+   */
+  updateTokens(accessToken: string, refreshToken: string, tokenExpires: number): void {
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+    this.tokenExpires = tokenExpires;
+    console.log('🔑 Tokens updated successfully');
+  }
+
+  /**
+   * Check if access token is expired or will expire soon (within 5 minutes)
+   */
+  isAccessTokenExpired(): boolean {
+    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+    return this.tokenExpires < fiveMinutesFromNow;
+  }
+
+  /**
+   * Refresh the access token using the refresh token
+   */
+  async refreshAccessToken(): Promise<void> {
+    try {
+      console.log('🔄 Refreshing access token...');
+      
+      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.refreshToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.token && data.refreshToken && data.tokenExpires) {
+        this.accessToken = data.token;
+        this.refreshToken = data.refreshToken;
+        this.tokenExpires = data.tokenExpires;
+        console.log('✅ Access token refreshed successfully');
+      } else {
+        throw new Error('Invalid token refresh response');
+      }
+    } catch (error) {
+      console.error('❌ Failed to refresh access token:', error);
+      throw new Error('Authentication failed. Please refresh the page or contact support.');
+    }
+  }
+
+  /**
+   * Get a valid access token (refresh if needed)
+   */
+  async getValidAccessToken(): Promise<string> {
+    if (this.isAccessTokenExpired()) {
+      await this.refreshAccessToken();
+    }
+    return this.accessToken;
+  }
+
+  /**
+   * Get current tokens info (for debugging)
+   */
+  getTokensInfo(): { accessToken: string; refreshToken: string; expiresAt: Date; isExpired: boolean } {
+    return {
+      accessToken: this.accessToken,
+      refreshToken: this.refreshToken,
+      expiresAt: new Date(this.tokenExpires),
+      isExpired: this.isAccessTokenExpired()
+    };
+  }
 
   /**
    * Get nearby exchange offices
    */
   async getNearbyOffices(params: NearbyOfficesRequest): Promise<NearbyOfficesResponse> {
+    // Get a valid access token (will refresh if needed)
+    const token = await this.getValidAccessToken();
+
     const url = new URL(`${this.baseUrl}/offices/nearby`);
     
     // Add required parameters
@@ -77,7 +164,7 @@ class ExchangeService {
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.authToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -87,6 +174,12 @@ class ExchangeService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.log('Error response:', errorData);
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error('Authentication failed. The access token may have expired. Please refresh the page or contact support.');
+        }
+        
         const errorMessage = errorData.message || `API request failed: ${response.status} ${response.statusText}`;
         throw new Error(errorMessage);
       }
@@ -104,6 +197,9 @@ class ExchangeService {
    * Try API call without currency parameters first (like your original curl)
    */
   async getNearbyOfficesSimple(latitude: number, longitude: number, radiusInKm: number = 10): Promise<NearbyOfficesResponse> {
+    // Get a valid access token (will refresh if needed)
+    const token = await this.getValidAccessToken();
+
     const url = new URL(`${this.baseUrl}/offices/nearby`);
     
     // Add only the basic parameters (like your original curl)
@@ -117,7 +213,7 @@ class ExchangeService {
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.authToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -127,6 +223,12 @@ class ExchangeService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.log('Simple error response:', errorData);
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error('Authentication failed. The access token may have expired. Please refresh the page or contact support.');
+        }
+        
         const errorMessage = errorData.message || `API request failed: ${response.status} ${response.statusText}`;
         throw new Error(errorMessage);
       }
