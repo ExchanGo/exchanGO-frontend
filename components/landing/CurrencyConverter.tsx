@@ -233,17 +233,28 @@ const CurrencyConverter = () => {
           toLabel="Change to"
           onCurrencyChange={handleCurrencyChange}
         >
-          {({ fromProps, toProps, fromLabel, toLabel }) => (
+          {({ fromProps, toProps, fromLabel, toLabel, onSwap, isSwapping }) => (
             <>
-              <div className="flex-1 py-3 px-5">
+              <motion.div
+                className="flex-1 py-3 px-5"
+                animate={
+                  isSwapping ? { x: [0, 20, 0], scale: [1, 0.95, 1] } : {}
+                }
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
                 <Typography
                   fontFamily="dm"
                   className="text-sm text-black font-medium mb-2"
                 >
                   Source Currency
                 </Typography>
-                <CurrencySelect {...fromProps} label={fromLabel} />
-              </div>
+                <motion.div
+                  animate={isSwapping ? { opacity: [1, 0.7, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <CurrencySelect {...fromProps} label={fromLabel} />
+                </motion.div>
+              </motion.div>
 
               {/* Swap Button */}
               <div className="flex items-center h-full overflow-hidden">
@@ -252,16 +263,46 @@ const CurrencyConverter = () => {
                     orientation="vertical"
                     className="h-full w-[1px] bg-[var(--color-lite)]"
                   />
-                  <button className="rounded-full">
-                    <Image
-                      src="/svg/exchange-rotate.svg"
-                      alt="Exchange currencies"
-                      width={16}
-                      height={16}
-                      className="h-8 w-8"
-                      priority
-                    />
-                  </button>
+                  <motion.button
+                    className="rounded-full p-2 hover:bg-gray-50 transition-colors duration-200"
+                    onClick={onSwap}
+                    disabled={isSwapping}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={isSwapping ? { rotate: 180 } : { rotate: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      ease: "easeInOut",
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 15,
+                    }}
+                  >
+                    <motion.div
+                      animate={
+                        isSwapping
+                          ? {
+                              scale: [1, 1.2, 1],
+                              filter: [
+                                "hue-rotate(0deg)",
+                                "hue-rotate(180deg)",
+                                "hue-rotate(0deg)",
+                              ],
+                            }
+                          : {}
+                      }
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Image
+                        src="/svg/exchange-rotate.svg"
+                        alt="Exchange currencies"
+                        width={16}
+                        height={16}
+                        className="h-6 w-6"
+                        priority
+                      />
+                    </motion.div>
+                  </motion.button>
                   <Separator
                     orientation="vertical"
                     className="h-full w-[1px] bg-[var(--color-lite)]"
@@ -269,15 +310,26 @@ const CurrencyConverter = () => {
                 </div>
               </div>
 
-              <div className="flex-1 p-3">
+              <motion.div
+                className="flex-1 p-3"
+                animate={
+                  isSwapping ? { x: [0, -20, 0], scale: [1, 0.95, 1] } : {}
+                }
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
                 <Typography
                   fontFamily="dm"
                   className="text-sm text-black font-medium mb-2"
                 >
                   Target Currency
                 </Typography>
-                <CurrencySelect {...toProps} label={toLabel} />
-              </div>
+                <motion.div
+                  animate={isSwapping ? { opacity: [1, 0.7, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <CurrencySelect {...toProps} label={toLabel} />
+                </motion.div>
+              </motion.div>
             </>
           )}
         </DualCurrencySelector>

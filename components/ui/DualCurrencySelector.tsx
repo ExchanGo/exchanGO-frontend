@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface Currency {
   value: string;
@@ -24,6 +25,8 @@ interface DualCurrencySelectorProps {
     };
     fromLabel: string;
     toLabel: string;
+    onSwap: () => void;
+    isSwapping: boolean;
   }) => React.ReactNode;
 }
 
@@ -80,6 +83,7 @@ export default function DualCurrencySelector({
 }: DualCurrencySelectorProps) {
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("MAD");
+  const [isSwapping, setIsSwapping] = useState(false);
 
   const handleFromCurrencyChange = (newValue: string) => {
     setFromCurrency(newValue);
@@ -103,6 +107,26 @@ export default function DualCurrencySelector({
     }
   };
 
+  const handleSwap = async () => {
+    setIsSwapping(true);
+
+    // Wait for animation to complete
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Swap the currencies
+    const tempFrom = fromCurrency;
+    const tempTo = toCurrency;
+
+    setFromCurrency(tempTo);
+    setToCurrency(tempFrom);
+
+    // Notify parent component
+    onCurrencyChange?.({ from: tempTo, to: tempFrom });
+
+    // Reset swapping state
+    setIsSwapping(false);
+  };
+
   useEffect(() => {
     onCurrencyChange?.({ from: fromCurrency, to: toCurrency });
   }, []);
@@ -122,6 +146,8 @@ export default function DualCurrencySelector({
         },
         fromLabel,
         toLabel,
+        onSwap: handleSwap,
+        isSwapping,
       })}
     </div>
   );
